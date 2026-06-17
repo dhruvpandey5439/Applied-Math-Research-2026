@@ -33,8 +33,7 @@ randomly day to day.
 
   - Why it mattered here: confirmed statistically (not just by eye) via the squared-returns autocorrelation result below. Direct motivation for including GARCH as one of the classical models later, since GARCH is specifically built to forecast volatility using this clustering pattern.
 
-
-Fat tails: financial returns have more extreme days (big gains/losses)
+  Fat tails: financial returns have more extreme days (big gains/losses)
 than a normal bell-curve distribution would predict. Confirmed numerically
 using skewness and kurtosis on the Day 1 returns histogram.
 
