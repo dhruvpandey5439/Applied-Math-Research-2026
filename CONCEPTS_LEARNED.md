@@ -59,6 +59,11 @@ network basics.)
 
   - What confused me: I needed several passes to connect "0.40" (strength of relationship) with "outside the band" (statistically real, not noise) into one complete idea, instead of treating them as two separate facts.
 
+ **Walk-forward validation (train/test splitting for time-series):** The correct way to split time-ordered data into training and testing sets. Training data must always come entirely BEFORE testing data in time -- never shuffled, never mixed. Walk-forward validation repeats this chronological split multiple times (called "folds"), each time with a bigger training window, sliding forward through time.
+
+- Why it mattered here: Randomly shuffling rows before splitting (the default behavior in most ML libraries) lets a model train on data from later years and get tested on data from earlier years -- which is impossible in real-world forecasting, since you'd never actually have future information available at the time you're making a past prediction. This is the same lookahead bias problem from Day 3's features, just appearing at the train/test-split level instead. Confirmed directly: a shuffled split produced a "train" date range and a "test" date range that both spanned the entire 2000-2026 period, proving they were mixed together in time, not separated.
+
+- What confused me: The sheer number of new terms at once (row, fold, train set, test set) made the output hard to parse initially. It helped to compare just two specific numbers side by side at a time, rather than trying to absorb the whole printed output in one pass.
 
 (More to be added: standard deviation/skewness/kurtosis detail, walk-
 forward validation logic, statistical significance testing for comparing
