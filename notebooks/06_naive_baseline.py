@@ -1,3 +1,24 @@
+# =============================================================================
+# DAY 6: Naive Baseline Models
+# =============================================================================
+# This is the FIRST model of Phase 2, and arguably the most important one.
+# Every single model we build from here on (ARIMA, GARCH, GBM, Random Forest,
+# LSTM) must beat BOTH of these baselines by a meaningful, statistically
+# significant margin -- or the honest conclusion is "no real predictability found."
+#
+# We build TWO naive baselines:
+#   1. "Always Up"   -- predict direction = 1 (up) every single day, no thinking
+#   2. "Persistence" -- predict today will go the same direction as yesterday
+#
+# Neither model looks at features, learns from data, or does any computation
+# beyond reading yesterday's value. That's the point: they are the dumbest
+# possible "models." If a complex neural network can't beat a coin flip rule,
+# the neural network learned nothing useful.
+#
+# OUTPUT: results/model_comparison.csv -- the first two rows of the comparison
+# table that will eventually contain all 6 models side by side.
+# =============================================================================
+
 import os
 import pandas as pd
 import numpy as np
