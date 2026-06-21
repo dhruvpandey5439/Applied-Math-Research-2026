@@ -67,3 +67,18 @@ depth, so we keep both.
 - What I learned: The persistence baseline falling below 50% confirms near-zero directional autocorrelation in returns, consistent with Day 2 ACF/PACF findings and the Efficient Market Hypothesis. There is no simple momentum to exploit. Every subsequent model must beat 53.93% to be considered meaningful.
 
 - Saved: results/model_comparison.csv, figures/day6_baseline_results.png
+
+
+### (2026-06-21) Day 7: ARIMA(1,0,1) Model
+What I did: Fitted ARIMA(1,0,1) on S&P 500 daily returns using 5-fold walk-forward validation. Evaluated on RMSE, MAE, direction accuracy, and F1.
+
+Results (mean across 5 folds):
+  RMSE:               0.011698
+  MAE:                0.007649
+  Direction Accuracy: 50.73%
+  F1 Score:           0.4236
+  vs Naive Baseline:  -3.20 percentage points
+
+What I learned: ARIMA performed worse than the naive baseline on average, confirming that past returns contain almost no linear predictive information about future direction -- consistent with Day 2 ACF/PACF and the EMH. Performance was highly unstable across folds: Fold 1-2 were below 45%, while Fold 4 reached 57%. This regime-dependence is itself a finding worth discussing in the paper.
+
+Problems: None.
