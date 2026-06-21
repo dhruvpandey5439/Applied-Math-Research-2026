@@ -75,4 +75,18 @@ randomly day to day.
 
 **ARCH/GARCH origin -- Engle (1982), Bollerslev (1986):** GARCH models time-varying volatility. The variance of returns is not constant -- it depends on past squared errors (past shocks). GARCH(1,1) using just one lag proved sufficient for most financial series and remains the standard volatility benchmark. Directly motivated by the squared-returns ACF result from Day 2.
 
-(More to be added: standard deviation/skewness/kurtosis detail, walk-forward validation logic, statistical significance testing for comparing models -- coming in Phase 1 Day 4 and Phase 5.)
+**RMSE (Root Mean Squared Error):** measures how far predicted return values are from actual values. Penalizes large errors more heavily because of the squaring. Lower = better.
+
+**MAE (Mean Absolute Error):** average of absolute differences between predicted and actual return values. Less sensitive to outliers than RMSE. Lower = better.
+
+**Regime-dependence:** when a model performs very differently across time periods. ARIMA got 44% in 2008-2013 but 57% in 2017-2022 -- suggesting it picks up patterns that only exist in certain market conditions, not a stable generalizable signal. (More to be added: standard deviation/skewness/kurtosis detail, walk-forward validation logic, statistical significance testing for comparing models -- coming in Phase 1 Day 4 and Phase 5.)
+
+### Classical Models
+Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.
+
+**ARIMA (AutoRegressive Integrated Moving Average):** the standard classical statistical benchmark for time-series forecasting. 
+Three components:
+  - AR (AutoRegressive): predicts using weighted past returns."Auto" means it regresses on itself -- past values of the same series.
+  - I (Integrated): differencing to achieve stationarity. Set to 0 here since returns are already stationary from Day 2.
+  - MA (Moving Average): uses past forecast ERRORS (not past returns) to correct future predictions.
+  Equation: r(t) = c + φ1*r(t-1) + θ1*ε(t-1) + ε(t) Order notation: ARIMA(p, d, q) -- p=AR lags, d=differencing, q=MA lags. We used ARIMA(1,0,1).
