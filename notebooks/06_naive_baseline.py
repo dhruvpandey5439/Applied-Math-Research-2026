@@ -136,31 +136,4 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to {fig_path}")
 
-# =============================================================================
-# STEP 7: Research log summary
-# =============================================================================
-print("\n" + "="*60)
-print("DAY 6 SUMMARY -- add this to your research log:")
-print("="*60)
-print(f"""
-What I did:
-  Built two naive baseline models on the test set (2021-2026):
-  (1) Always Up: predicts direction=1 every day
-  (2) Persistence: predicts tomorrow = today's direction
-
-Results:
-  Always Up accuracy:   {always_up_accuracy*100:.2f}%  (F1: {always_up_f1:.4f})
-  Persistence accuracy: {persistence_accuracy*100:.2f}% (F1: {persistence_f1:.4f})
-
-What this means:
-  ~{always_up_accuracy*100:.1f}% is the floor every real model must beat.
-  The persistence baseline tells us whether simple day-to-day momentum
-  exists in the test period. If it barely beats 50%, that is consistent
-  with the near-zero ACF we found in Day 2 -- the market does not have
-  strong short-term directional momentum.
-
-Saved:
-  results/model_comparison.csv  (comparison table, 2 rows so far)
-  figures/day6_baseline_results.png
-""")
 print("Day 6 complete.")
