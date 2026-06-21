@@ -34,7 +34,7 @@ print(data.head())
 # We EXPECT price to fail this (large p-value) based on yesterday's plot.
 
 result_price = adfuller(data["Close"])
-
+plt.style.use("dark_background")
 print("=== ADF Test: PRICE ===")
 print(f"Test Statistic: {result_price[0]:.4f}")
 print(f"p-value: {result_price[1]:.4f}")

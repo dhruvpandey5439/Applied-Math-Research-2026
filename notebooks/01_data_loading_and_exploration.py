@@ -19,7 +19,7 @@ print(data.head())   # first 5 rows
 print(data.tail())   # last 5 rows
 print(data.shape)    # (number of rows, number of columns)
 print(data.columns)  # column names: Open, High, Low, Close, Volume (Adj Close folded into Close by default now)
-
+plt.style.use("dark_background")
 # %% --------------------------------------------------------------------
 # STEP 2: Save the raw data so we never have to re-download it
 # --------------------------------------------------------------------

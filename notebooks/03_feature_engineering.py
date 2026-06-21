@@ -97,7 +97,8 @@ print("Final shape:", data.shape)
 print("\nDirection target balance:")
 print(data["target_direction"].value_counts())
 print(data["target_direction"].value_counts(normalize=True))
- 
+plt.style.use("dark_background")
+
 # %% --------------------------------------------------------------------
 # STEP 8: Save the feature-engineered dataset
 # --------------------------------------------------------------------

@@ -1,4 +1,3 @@
-
 import os
 import pandas as pd
 
@@ -89,7 +88,7 @@ for fold, (train_idx, test_idx) in enumerate(tscv.split(data), start=1):
 # We'll use TimeSeriesSplit (Step 4) directly inside model training scripts
 # going forward, but saving this simple 80/20 version now gives us a quick
 # train/test pair to sanity-check the very first models with.
-
+plt.style.use("dark_background")
 train_path = os.path.join(script_dir, "sp500_train.csv")
 test_path = os.path.join(script_dir, "sp500_test.csv")
 train.to_csv(train_path)

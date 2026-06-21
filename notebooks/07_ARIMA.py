@@ -24,7 +24,8 @@ print("Date range:", data.index.min().date(), "to", data.index.max().date())
 # not the engineered features we built in Day 3. ARIMA is a univariate model:
 # it only looks at one variable (past returns) to predict future returns.
 returns = data["Return"]
- 
+plt.style.use("dark_background")
+
 # =============================================================================
 # STEP 2: Choose ARIMA order (p, d, q)
 # =============================================================================

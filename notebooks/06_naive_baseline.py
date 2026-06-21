@@ -135,5 +135,5 @@ fig_path = os.path.join(figures_dir, "day6_baseline_results.png")
 plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to {fig_path}")
-
+plt.style.use("dark_background")
 print("Day 6 complete.")
