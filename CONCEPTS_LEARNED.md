@@ -33,19 +33,23 @@ randomly day to day.
 
   - Why it mattered here: confirmed statistically (not just by eye) via the squared-returns autocorrelation result below. Direct motivation for including GARCH as one of the classical models later, since GARCH is specifically built to forecast volatility using this clustering pattern.
 
- ** Fat tails:** financial returns have more extreme days (big gains/losses) than a normal bell-curve distribution would predict. Confirmed numerically using skewness and kurtosis on the Day 1 returns histogram.
+ **Fat tails:** financial returns have more extreme days (big gains/losses) than a normal bell-curve distribution would predict. Confirmed numerically using skewness and kurtosis on the Day 1 returns histogram.
 
 **Lookahead bias / data leakage:** Accidentally letting a model "see" future information when building a feature meant to predict that future. If a feature for "today" secretly includes tomorrow's actual data, results in testing will look great but be meaningless in real life, since that information wouldn't exist yet at prediction time.
 
   - Why it mattered: Every FEATURE column uses .shift(1) or similar (pulling from the past). Only the TARGET columns (target_direction, target_return) use .shift(-1) (pulling tomorrow's value), because defining the answer we want to predict is the one legitimate place to reference the future.
 
+  **Efficient Market Hypothesis (EMH) -- Fama (1970):** in an efficient market, past prices contain no exploitable information about future prices. This is the theoretical reason financial forecasting is hard for any model, and why the Day 2 ACF/PACF showing near-zero autocorrelation was expected, not surprising.
+
+**Geometric Brownian Motion (GBM) -- Samuelson (1965):** the mathematical model of stock price dynamics. Prices follow the equation dS = μS dt + σS dW, where μ is drift, σ is volatility, and dW is random noise. GBM is the mathematical embodiment of the EMH -- if prices truly follow GBM, no model should consistently beat it.
+
+**Anti-momentum:** when the persistence baseline scores below 50%, it means the market has a slight tendency to reverse direction day-to-day rather than continue. Confirmed in Day 6 (49.77%). Consistent with near-zero ACF and the EMH.
+
+**Naive baseline:** the simplest possible "model" -- a dumb rule requiring no learning. Used to establish the accuracy floor every real model must beat. Two variants: Always Up (53.93%) and Persistence (49.77%).
+
 ## Machine Learning
 
-(To be filled in starting Phase 3 -- Ridge/Logistic Regression, Random
-Forest, XGBoost -- and Phase 4, LSTM. Concepts coming: overfitting,
-bias-variance tradeoff, regularization, decision trees, boosting, neural
-network basics.)
-
+**(Fischer & Krauss (2018) key finding:** LSTM achieved only 56% directional accuracy on S&P 500 constituents. Random Forest outperformed LSTM in trading returns despite deep learning's reputation for superiority. This is a published benchmark to compare our own results against.
 
 ## Math / Statistics
 
@@ -65,6 +69,10 @@ network basics.)
 
 - What confused me: The sheer number of new terms at once (row, fold, train set, test set) made the output hard to parse initially. It helped to compare just two specific numbers side by side at a time, rather than trying to absorb the whole printed output in one pass.
 
-(More to be added: standard deviation/skewness/kurtosis detail, walk-
-forward validation logic, statistical significance testing for comparing
-models -- coming in Phase 1 Day 4 and Phase 5.)
+**Confusion matrix:** a table showing the four possible outcomes of a binary prediction -- true positives, true negatives, false positives, false negatives. The Always Up confusion matrix had zero predictions in the "down" column, confirming it never predicts down regardless of what actually happened.
+
+**F1 score:** a metric that balances precision (of all "up" predictions, how many were correct?) and recall (of all actual "up" days, how many did we catch?). More informative than accuracy alone when classes are imbalanced. Always Up got F1 = 0.70 because it catches every true "up" day but misses every "down" day entirely.
+
+**ARCH/GARCH origin -- Engle (1982), Bollerslev (1986):** GARCH models time-varying volatility. The variance of returns is not constant -- it depends on past squared errors (past shocks). GARCH(1,1) using just one lag proved sufficient for most financial series and remains the standard volatility benchmark. Directly motivated by the squared-returns ACF result from Day 2.
+
+(More to be added: standard deviation/skewness/kurtosis detail, walk-forward validation logic, statistical significance testing for comparing models -- coming in Phase 1 Day 4 and Phase 5.)
