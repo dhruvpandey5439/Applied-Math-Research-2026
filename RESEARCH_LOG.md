@@ -34,3 +34,36 @@ depth, so we keep both.
 - Results: Chronological 80/20 split: train = 2000-02-02 to 2021-02-18 (5295 rows), test = 2021-02-19 to 2026-05-28 (1324 rows), no overlap. 5-fold walk-forward validation confirmed correct: e.g. Fold 3 train ends 2013-04-02, Fold 3 test starts 2013-04-03 -- exactly adjacent, no gap, no overlap.
   
 - Problems: Initially found the terminology (row, fold, train/test set) confusing when looking at the output all at once. Worked through it by focusing on one number at a time instead of the whole output -- e.g. comparing just the WRONG approach's two date ranges side by side first, before moving to the RIGHT approach.
+
+### (2026-06-18) Day 5: Literature Review
+- What I did: Read and logged 12+ papers across 7 themes into references/literature_review_notes.md. Themes covered:
+  - ML vs. classical methods broad comparisons (Makridakis 2018, Springer Nature 2025, MDPI Entropy 2025)
+  - ARIMA vs. LSTM on S&P 500 specifically (Pilla & Mekonen 2025, SCITEPRESS 2023, JRFM 2026)
+  - Random Forest and XGBoost vs. classical (BCP 2023, BCP 2022)
+  - Efficient Market Hypothesis theoretical backdrop (Fama 1970, Southampton University study)
+  - Fischer & Krauss 2018 -- the most cited LSTM finance paper
+  - Foundational GARCH papers (Engle 1982, Bollerslev 1986, Marisetty 2024)
+  - Geometric Brownian Motion (Samuelson 1965, Black & Scholes 1973)
+  
+- What I learned:
+  1. ML does not consistently beat classical methods -- results depend heavily on methodology and evaluation setup.
+  2. Predicting price LEVEL is much easier than predicting return DIRECTION -- many "impressive" ML papers are doing the easier task.
+  3. GARCH's niche is volatility forecasting, not direction prediction -- consistent with Day 2 squared-returns ACF finding.
+  4. EMH (Fama 1970) and GBM (Samuelson 1965) are the theoretical reason one-day-ahead return forecasting is hard for any model.
+  5. Fischer & Krauss (2018) found Random Forest outperformed LSTM in trading returns -- "more complex" does not reliably mean "better," which is exactly what this project tests.
+  6. My project's genuine novelty claim: three-tradition comparison (mathematical via GBM/Monte Carlo, statistical via ARIMA/GARCH, ML via Ridge through LSTM) -- this framing does not exist cleanly in prior literature.
+	
+
+- Problems: None.
+
+### (2026-06-20) Day 6: Naive Baseline Models
+- What I did: Built two naive baseline models evaluated on the test set 
+(2021-02-19 to 2026-05-28, 1324 rows).
+
+- Results:
+  Always Up accuracy:   53.93% (F1: 0.7007) — the accuracy floor
+  Persistence accuracy: 49.77% (F1: 0.5340) — below random chance
+
+- What I learned: The persistence baseline falling below 50% confirms near-zero directional autocorrelation in returns, consistent with Day 2 ACF/PACF findings and the Efficient Market Hypothesis. There is no simple momentum to exploit. Every subsequent model must beat 53.93% to be considered meaningful.
+
+- Saved: results/model_comparison.csv, figures/day6_baseline_results.png
