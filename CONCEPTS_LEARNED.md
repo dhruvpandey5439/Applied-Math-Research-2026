@@ -47,6 +47,20 @@ randomly day to day.
 
 **Naive baseline:** the simplest possible "model" -- a dumb rule requiring no learning. Used to establish the accuracy floor every real model must beat. Two variants: Always Up (53.93%) and Persistence (49.77%).
 
+**GARCH as a volatility model, not a direction model:**
+GARCH's real output is a variance forecast -- how much the market is expected
+to move tomorrow, not which way. The direction accuracy number (49.23%) came
+from a heuristic imposed on top of it: high predicted vol → predict down,
+low predicted vol → predict up. That is not what GARCH was built for.
+The right metric for GARCH in this project is volatility RMSE: 0.3601%.
+That is what goes in the paper as the GARCH contribution.
+
+**GARCH regime sensitivity:**
+GARCH adapts slowly to sudden volatility regime changes. Fold 3 (2018–2021)
+RMSE spiked to 0.50% vs ~0.30% in normal folds because of the COVID crash
+in March 2020 -- a massive sudden spike the model had never seen in training.
+This is a known limitation discussed in the volatility modeling literature.
+
 ## Machine Learning
 
 **(Fischer & Krauss (2018) key finding:** LSTM achieved only 56% directional accuracy on S&P 500 constituents. Random Forest outperformed LSTM in trading returns despite deep learning's reputation for superiority. This is a published benchmark to compare our own results against.
@@ -81,6 +95,25 @@ randomly day to day.
 
 **Regime-dependence:** when a model performs very differently across time periods. ARIMA got 44% in 2008-2013 but 57% in 2017-2022 -- suggesting it picks up patterns that only exist in certain market conditions, not a stable generalizable signal. (More to be added: standard deviation/skewness/kurtosis detail, walk-forward validation logic, statistical significance testing for comparing models -- coming in Phase 1 Day 4 and Phase 5.)
 
+**Heteroskedasticity:**
+Variance is not constant over time. Some periods are calm, some are chaotic.
+Confirmed in Day 2 -- squared returns ACF showed significant spikes, meaning
+big moves cluster together. GARCH was built specifically to model this.
+
+**The GARCH(1,1) Equation:**
+σ²(t) = ω + α·ε²(t−1) + β·σ²(t−1)
+
+σ²(t)     = today's variance (what we're predicting)
+ω         = long-run baseline variance (constant floor)
+ε²(t−1)   = yesterday's squared shock (how surprising yesterday was)
+σ²(t−1)   = yesterday's variance (how volatile it already was)
+
+**α + β ≈ 1 in financial data:**
+In most real GARCH fits on financial returns, α + β is very close to 1.
+This means volatility is highly persistent -- a high-volatility period tends
+to stay high for a long time before mean-reverting back to ω.
+If α + β = 1 exactly, the model is called IGARCH (integrated GARCH).
+
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.
 
@@ -90,3 +123,19 @@ Three components:
   - I (Integrated): differencing to achieve stationarity. Set to 0 here since returns are already stationary from Day 2.
   - MA (Moving Average): uses past forecast ERRORS (not past returns) to correct future predictions.
   Equation: r(t) = c + φ1*r(t-1) + θ1*ε(t-1) + ε(t) Order notation: ARIMA(p, d, q) -- p=AR lags, d=differencing, q=MA lags. We used ARIMA(1,0,1).
+  
+  **GARCH (Generalized AutoRegressive Conditional Heteroskedasticity):**
+A classical statistical model that predicts time-varying volatility -- how
+uncertain tomorrow will be based on how uncertain it has recently been.
+It does NOT predict direction. It predicts variance.
+
+**ARCH vs GARCH:**
+ARCH (Engle 1982) only uses past squared shocks to predict variance.
+GARCH (Bollerslev 1986) adds a lagged variance term -- making it more
+flexible and persistent. GARCH(1,1) nests ARCH(1) as a special case
+when β = 0. GARCH(1,1) is now the standard volatility model in finance.
+
+**GARCH(1,1) notation:**
+p=1 means one lag of the squared shock term (α)
+q=1 means one lag of the variance term (β)
+GARCH(1,1) is almost always sufficient for daily financial returns.
