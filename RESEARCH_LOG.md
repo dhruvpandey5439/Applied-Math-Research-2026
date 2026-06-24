@@ -56,7 +56,7 @@ depth, so we keep both.
 
 - Problems: None.
 
-### (2026-06-20) Day 6: Naive Baseline Models
+### (2026-06-19   -  2026-06-20) Day 6: Naive Baseline Models
 - What I did: Built two naive baseline models evaluated on the test set 
 (2021-02-19 to 2026-05-28, 1324 rows).
 
@@ -82,3 +82,5 @@ Results (mean across 5 folds):
 What I learned: ARIMA performed worse than the naive baseline on average, confirming that past returns contain almost no linear predictive information about future direction -- consistent with Day 2 ACF/PACF and the EMH. Performance was highly unstable across folds: Fold 1-2 were below 45%, while Fold 4 reached 57%. This regime-dependence is itself a finding worth discussing in the paper.
 
 Problems: None.
+
+### (2026-06-22  -  2026-06-23) Day 8: 
