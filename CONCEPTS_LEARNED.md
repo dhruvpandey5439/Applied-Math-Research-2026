@@ -61,6 +61,28 @@ RMSE spiked to 0.50% vs ~0.30% in normal folds because of the COVID crash
 in March 2020 -- a massive sudden spike the model had never seen in training.
 This is a known limitation discussed in the volatility modeling literature.
 
+**GBM as the mathematical finance tradition:**
+GBM represents a completely different philosophy from ARIMA and GARCH.
+Statistical models learn patterns from past data. GBM does not learn --
+it says prices follow drift + randomness and simulates from that assumption.
+The only things calibrated from data are μ (mean daily return) and σ
+(std of daily returns). Everything else is pure mathematical theory.
+This is why GBM is the third tradition in the research question -- it is
+not statistical, not ML, but mathematical finance.
+
+**Drift sensitivity:**
+GBM direction forecasts are highly sensitive to the calibrated μ (drift).
+When μ is estimated from a long bull market history, GBM predicts "up"
+more often. In bull market test periods this works well (Fold 5: 57.19%).
+In choppy or bear periods it fails badly (Fold 4: 45.69%). This is a
+fundamental limitation -- GBM assumes drift is constant, which it is not.
+
+**Phase 2 finding:**
+No classical model beat the naive baseline on average. GBM came closest
+at -1.83pp, ARIMA at -3.20pp, GARCH at -4.70pp. This is consistent with
+EMH (Fama 1970) and Makridakis (2018). The ML models now need to beat
+53.93% to justify their added complexity.
+
 ## Machine Learning
 
 **(Fischer & Krauss (2018) key finding:** LSTM achieved only 56% directional accuracy on S&P 500 constituents. Random Forest outperformed LSTM in trading returns despite deep learning's reputation for superiority. This is a published benchmark to compare our own results against.
@@ -114,6 +136,39 @@ This means volatility is highly persistent -- a high-volatility period tends
 to stay high for a long time before mean-reverting back to ω.
 If α + β = 1 exactly, the model is called IGARCH (integrated GARCH).
 
+**The GBM Equation:**
+dS = μS dt + σS dW
+
+S   = current price
+μ   = drift (average daily upward tendency)
+σ   = volatility (size of random moves)
+dt  = one time step (one day)
+dW  = random noise drawn from a normal distribution
+
+The discrete one-step version used in code:
+S(t+1) = S(t) * exp((μ - 0.5σ²)dt + σ√dt * Z)
+
+Where Z ~ N(0,1) is a standard normal random draw.
+
+**Ito's Lemma correction -- the (μ - 0.5σ²) term:**
+Without this correction, the expected log return would be biased upward.
+The 0.5σ² term corrects for the mathematical asymmetry introduced by
+taking the exponential of a normally distributed variable. This comes
+from Ito's Lemma in stochastic calculus. It is subtle but critical --
+leaving it out would produce systematically overoptimistic forecasts.
+
+**Monte Carlo simulation:**
+Instead of solving the GBM equation once, simulate it N=1000 times,
+each time drawing different random noise Z. This gives 1000 possible
+futures. The median of those 1000 simulated prices is the point forecast.
+The spread of the distribution shows uncertainty -- wide spread means
+high uncertainty, narrow spread means low uncertainty.
+
+**Random seed (np.random.seed(42)):**
+Setting a fixed seed before Monte Carlo simulation makes results
+reproducible. Anyone who runs the same code gets the same 1000 random
+draws. Without it, results would differ slightly every run.
+
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.
 
@@ -139,3 +194,22 @@ when β = 0. GARCH(1,1) is now the standard volatility model in finance.
 p=1 means one lag of the squared shock term (α)
 q=1 means one lag of the variance term (β)
 GARCH(1,1) is almost always sufficient for daily financial returns.
+
+**GBM + Monte Carlo:**
+Geometric Brownian Motion is the mathematical model of stock price dynamics.
+First formalized by Samuelson (1965), it became the foundation of
+Black-Scholes (1973) and all of modern mathematical finance.
+GBM assumes prices follow a random walk with drift -- consistent with
+the Efficient Market Hypothesis. It does not learn from patterns in data.
+
+**Why GBM beat ARIMA and GARCH for direction:**
+GBM outperformed both statistical classical models (52.10% vs 50.73%
+and 49.23%) despite fitting nothing to the data beyond μ and σ.
+This suggests that the statistical structure ARIMA and GARCH try to
+exploit in past returns either does not exist or is too weak to help --
+consistent with the near-zero ACF from Day 2 and the EMH.
+
+**Connection to Black-Scholes:**
+The mathematical exposition (second artifact) will derive the
+Black-Scholes PDE from GBM assumptions. Day 9 is the practical
+implementation of the same foundation that derivation sits on.
