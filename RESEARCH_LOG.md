@@ -9,24 +9,24 @@ standard benchmark in the forecasting literature. Direction prediction is
 more forgiving to evaluate for a first project; return prediction adds
 depth, so we keep both.
 
-### (2026-06-14) Day 1: Data Loading and Exploration
+### (2026-06-14) Part 1: Data Loading and Exploration
 - What I did: Downloaded S&P 500 daily price data from 2000 to present (6641 rows). i did this by importing yfinance into my Visual Studio python code. During calling the data I found a bug where the yfinance returned data in MultiIndex columns so I had to flatten it using pandas. I used the pandas' pct_change() function to compute daily returns from the price data. Used matplotlib to generate and review plots of price, returns, and a histogram of returns. Saved raw and processed data as CSVs using pandas.
 - What I learned: Raw price trends upward over decades with no fixed "level" (non-stationary), while daily returns hover around zero the whole time (stationary). This is why financial models work with returns instead of raw price. Also saw that the histograp of returns has fatter tails than a normal distribution would predict (confirmed numerically using pandas" built-in skew() and kurt() functions). 
 - Problems: Had a path error where the script couldn't find the saved CSV depending on which folder the terminal was running from -- fixed using Python's OS library to make the script locate files relative to its own location instead of the current working directory.
 
 
-### (2026-06-15) Day 2: Stationarity and Autocorrelation
+### (2026-06-15) Part 2: Stationarity and Autocorrelation
 - What I did: Used the statsmodels library's adfuller() function to run the Augmented Dickey-Fuller (ADF) test on price and on returns. Used statsmodels' plot_acf() and plot_pacf() funcitons to generate autocorrelation plots for returns, amd separately for squared returns (computed using basic Python exponentiation, Return**2).
 - What I learned: The ADF test on price gave a p-value of 1.0000 (no evidence of stationarity). The ADF test on returns gave a p-value of about 0.000000 (strong evidence of stationarity). The ACF/PACF plots on raw returns showed almost no statistically meaningful autocorrelation at any lag, meaning past returns don't reliably  predict the direction of future returns. The ACF/PACF plots on squared returns showed strong, statistically meaninful autocorrelation at every lag tested (around 0.40 at lag 2), meaning past volatility. This is called volatility clustering.
 - Problems: None once the path issue from Day 1 was fixed (same fix carried over using the os library).
 
-### (2026-06-16) Day 3: Feature Engineering
+### (2026-06-16) Part 3: Feature Engineering
 - What I did: Used pandas' shift() and rolling() functions to build engineered features -- lagged returns (1,2,3, and 5 days back), rolling averages (5 day and 10-day), and rolling volatility (5 day, 10-day, and 20-day standard deviation of returns). Defined two prediction targets using shift(-1) target_direction (1 if tomorrow's return is positive, 0 otherwise) and target_return (tomorrow's actual return value). Dropped rows with missing values created by the lag/rolling windows. Saved the result as sp500_features.csv.
 - What I learned: Why features must only use past data (lookahead bias/data leakage) --shift(1) pulls past data (safe for features), while shift(-1) pulls future data (only safe for defining the target, since that's literally the answer we're trying to predict, not an input). Verified this manually: return_lag_1 on any row exactly matches Return from the row before it, and target_return on any row exactly matches Return from the row after it -- confirming the shifts work correctly in both directions.
 - Results: Final dataset has 6619 rows and 17 columns after dropping 21 rows with missing values. Class balance for target_direction: 53.8% up-days vs 46.2% down-days -- mildly imbalanced, meaning a model that always predicts "up" would get ~53.8% accuracy without learning anything real. This becomes the baseline every real model needs to beat by a meaningful, statistically significant margin.
 - Problems: None -- ran cleanly once the file was saved into the correct folder.
 
-### (2026-06-17) Day 4: Walk-Forward Train/Test Split (complete)
+### (2026-06-17) Part 4: Walk-Forward Train/Test Split (complete)
 - What I did: First tested the WRONG way to split time-series data --  randomly shuffling rows before splitting into train/test (the default behavior of sklearn's train_test_split). Then did it the RIGHT way: a single chronological split where all training data comes before all test data, with no overlap. Then built a more rigorous version called walk-forward validation using sklearn's TimeSeriesSplit, which repeats the chronological split 5 times with an expanding training window, giving 5 separate train/test pairs (folds) instead of just one.
   
 - What I learned: When data is randomly shuffled, both the resulting "training" pile and "testing" pile end up spanning the entire 26-year date range -- confirmed directly in my own output (both showed date ranges from 2000 to 2026). This means a model could secretly train on recent data (e.g. 2024) and get "tested" on older data (e.g. 2010), which is impossible in real life and makes the evaluation meaningless. The chronological split fixes this: training data always comes before test data in time, so the model is never trained on the future and tested on the past -- only ever the other way around. Walk-forward validation repeats this idea 5 times, each fold's test period starting exactly one day after that fold's training period ends, giving a more trustworthy evaluation than relying on just one split.
@@ -35,7 +35,7 @@ depth, so we keep both.
   
 - Problems: Initially found the terminology (row, fold, train/test set) confusing when looking at the output all at once. Worked through it by focusing on one number at a time instead of the whole output -- e.g. comparing just the WRONG approach's two date ranges side by side first, before moving to the RIGHT approach.
 
-### (2026-06-18) Day 5: Literature Review
+### (2026-06-18) Part 5: Literature Review
 - What I did: Read and logged 12+ papers across 7 themes into references/literature_review_notes.md. Themes covered:
   - ML vs. classical methods broad comparisons (Makridakis 2018, Springer Nature 2025, MDPI Entropy 2025)
   - ARIMA vs. LSTM on S&P 500 specifically (Pilla & Mekonen 2025, SCITEPRESS 2023, JRFM 2026)
@@ -56,7 +56,7 @@ depth, so we keep both.
 
 - Problems: None.
 
-### (2026-06-19   -  2026-06-20) Day 6: Naive Baseline Models
+### (2026-06-19   -  2026-06-20) Part 6: Naive Baseline Models
 - What I did: Built two naive baseline models evaluated on the test set 
 (2021-02-19 to 2026-05-28, 1324 rows).
 
@@ -69,7 +69,7 @@ depth, so we keep both.
 - Saved: results/model_comparison.csv, figures/day6_baseline_results.png
 
 
-### (2026-06-21) Day 7: ARIMA(1,0,1) Model
+### (2026-06-21) Part 7: ARIMA(1,0,1) Model
 What I did: Fitted ARIMA(1,0,1) on S&P 500 daily returns using 5-fold walk-forward validation. Evaluated on RMSE, MAE, direction accuracy, and F1.
 
 Results (mean across 5 folds):
@@ -83,4 +83,103 @@ What I learned: ARIMA performed worse than the naive baseline on average, confir
 
 Problems: None.
 
-### (2026-06-22  -  2026-06-23) Day 8: 
+### (2026-06-22  -  2026-06-23) Part 8: 
+
+What I Did
+Implemented GARCH(1,1) using the arch library with walk-forward validation across 5 folds. GARCH is a volatility model — it predicts how uncertain tomorrow will be, not which direction the market moves. To make it comparable to other models, I derived a direction signal from its volatility forecast: if predicted volatility is above the training median, predict down; if below, predict up.
+
+Results:
+Fold 1 | Test: 2013-04-09 → 2015-11-18 | Dir Accuracy: 48.26% | Vol RMSE: 0.3026% | Vol MAE: 0.2457% | F1: 0.5938
+Fold 2 | Test: 2015-11-19 → 2018-07-06 | Dir Accuracy: 52.19% | Vol RMSE: 0.3015% | Vol MAE: 0.2462% | F1: 0.6238
+Fold 3 | Test: 2018-07-09 → 2021-02-22 | Dir Accuracy: 47.66% | Vol RMSE: 0.4999% | Vol MAE: 0.3372% | F1: 0.4594
+Fold 4 | Test: 2021-02-23 → 2023-10-06 | Dir Accuracy: 51.74% | Vol RMSE: 0.3190% | Vol MAE: 0.2463% | F1: 0.3708
+Fold 5 | Test: 2023-10-09 → 2026-05-28 | Dir Accuracy: 46.29% | Vol RMSE: 0.3777% | Vol MAE: 0.2579% | F1: 0.4709
+
+Mean Direction Accuracy : 49.23%
+Mean F1 Score           : 0.5038
+Mean Vol RMSE           : 0.3601%
+Mean Vol MAE            : 0.2667%
+vs Naive Baseline       : -4.70 pp
+
+What I Learned
+GARCH stands for Generalized AutoRegressive Conditional Heteroskedasticity.
+
+Heteroskedasticity means variance is not constant over time — some periods are calm, some are chaotic. I confirmed this in Day 2 when I saw the squared returns ACF had significant spikes (volatility clustering).
+The equation is: σ²(t) = ω + α·ε²(t−1) + β·σ²(t−1)
+ω is the long-run baseline variance. α controls how much recent shocks matter. β controls how persistent the current volatility level is. In most fitted GARCH(1,1) models on financial data, α + β is close to 1.0 — meaning volatility is highly persistent.
+GARCH(1,1) means one lag of the shock term and one lag of the variance term. Bollerslev introduced this in 1986 as a generalization of Engle's ARCH model (1982).
+
+Why the direction accuracy is low and why that's fine:
+
+GARCH was never designed to predict direction. The 49.23% direction accuracy is the result of a heuristic I imposed on top of the model — it is not what GARCH was built for. The real metric for GARCH is volatility RMSE: 0.36%. That number will be discussed in the paper as the GARCH contribution, not the direction accuracy.
+The COVID fold (Fold 3, 2018–2021):
+
+RMSE jumped from ~0.30% in normal folds to 0.50%. This is a known weakness of GARCH — it adapts slowly to sudden regime changes. The COVID crash in March 2020 was a massive, sudden volatility spike that the model had not seen in training. This is worth a sentence in the Discussion section.
+How this fits the research question:
+
+GARCH represents the classical statistical tradition alongside ARIMA. Together ARIMA and GARCH establish what the statistical tradition can do before ML models enter. So far both classical statistical models fall below the naive baseline for direction prediction — this is consistent with the Efficient Market Hypothesis and with the literature (Makridakis 2018, Fama 1970).
+
+## (2026-06-24) Part 9 — GBM + Monte Carlo Simulation
+
+
+**What I did**
+Implemented Geometric Brownian Motion + Monte Carlo simulation using the
+mathematical finance tradition. For each test day, calibrated μ (drift)
+and σ (volatility) from the training window, then simulated 1000 possible
+next-day prices using the GBM equation. Used the median simulated price
+as the direction forecast. Re-calibrated μ and σ at each step on an
+expanding window to prevent lookahead bias.
+
+---
+**Results:**
+
+Fold 1 | Test: 2013-04-09 → 2015-11-18 | Dir Accuracy: 50.38% | RMSE: 0.008133 | MAE: 0.005996 | F1: 0.5432
+Fold 2 | Test: 2015-11-19 → 2018-07-06 | Dir Accuracy: 52.65% | RMSE: 0.007619 | MAE: 0.005164 | F1: 0.5741
+Fold 3 | Test: 2018-07-09 → 2021-02-22 | Dir Accuracy: 54.61% | RMSE: 0.015179 | MAE: 0.009038 | F1: 0.6203
+Fold 4 | Test: 2021-02-23 → 2023-10-06 | Dir Accuracy: 45.69% | RMSE: 0.011468 | MAE: 0.008572 | F1: 0.5332
+Fold 5 | Test: 2023-10-09 → 2026-05-28 | Dir Accuracy: 57.19% | RMSE: 0.009652 | MAE: 0.006521 | F1: 0.6553
+
+Mean Direction Accuracy : 52.10%
+Mean F1 Score           : 0.5852
+Mean Return RMSE        : 0.010410
+Mean Return MAE         : 0.007058
+vs Naive Baseline       : -1.83 pp
+
+---
+
+** What This Means**
+GBM is the best performing classical model for direction prediction --
+still below the naive baseline but closer to it than ARIMA or GARCH.
+Pure mathematical theory with no pattern learning came closer to the
+floor than both statistical models that actually fit to the data.
+
+Performance was extremely regime-dependent:
+- Fold 3 (2018-2021): 54.61% -- beat the naive baseline, includes COVID
+- Fold 4 (2021-2023): 45.69% -- worst fold, choppy post-COVID market
+- Fold 5 (2023-2026): 57.19% -- best fold, strong bull market period
+This is because GBM is highly sensitive to calibrated drift μ. When μ
+is estimated from a long bull market history, GBM predicts "up" more
+often -- which works in bull periods and fails in choppy ones.
+
+---
+
+** End of Phase 2-- Full Classical Scorecard**
+
+Model              | Accuracy | vs Baseline
+Always Up (Naive)  | 53.93%   | THE FLOOR
+GBM + Monte Carlo  | 52.10%   | -1.83 pp
+ARIMA(1,0,1)       | 50.73%   | -3.20 pp
+Persistence        | 49.77%   | -4.16 pp
+GARCH(1,1)         | 49.23%   | -4.70 pp
+
+Summary: No classical model beat the naive baseline on average.
+The ML models in Phase 3 now need to beat 53.93% to justify complexity.
+
+---
+
+** Connections to Literature**
+- Samuelson (1965) -- GBM as the mathematical model of stock prices
+- Black & Scholes (1973) -- options pricing built on top of GBM
+- Fama (1970) -- EMH: results consistent with weak-form efficiency
+- Makridakis (2018) -- classical methods matching ML, confirmed here
+
