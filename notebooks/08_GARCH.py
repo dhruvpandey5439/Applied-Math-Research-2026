@@ -1,5 +1,5 @@
 # =============================================================================
-# DAY 8: GARCH(1,1) MODEL
+# PART 8: GARCH(1,1) MODEL
 # =============================================================================
 # Research Question:
 # To what extent do increasingly complex machine learning models improve
@@ -36,22 +36,20 @@ import os
 import warnings
 import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from arch import arch_model
 from sklearn.metrics import accuracy_score, f1_score
 
-# Silence harmless convergence warnings from GARCH optimizer
 warnings.filterwarnings("ignore")
 
 plt.style.use("dark_background")
+plt.rcParams["figure.facecolor"] = "#0e0e0e"
+plt.rcParams["axes.facecolor"]   = "#1a1a1a"
+plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
 # =============================================================================
 # STEP 1: LOAD DATA
 # =============================================================================
-# We load the same feature file built in Days 1-4.
-# GARCH only needs the Return column -- it's a univariate volatility model.
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -66,28 +64,20 @@ print(f"Data loaded: {data.index[0].date()} to {data.index[-1].date()} "
       f"({len(data)} rows)")
 print(f"Columns: {list(data.columns)}\n")
 
-# Pull just the returns series -- GARCH is univariate
-# Multiply by 100 to convert to percentage returns -- this helps the GARCH
-# optimizer converge more reliably (avoids very small numbers like 0.0012)
 returns = data["Return"] * 100
 
-# Also pull the target columns for evaluation later
 target_direction = data["target_direction"]
 target_return    = data["target_return"]
 
 # =============================================================================
 # STEP 2: WALK-FORWARD VALIDATION SETUP
 # =============================================================================
-# Same 5-fold walk-forward setup used in Day 7 ARIMA.
-# Each fold trains on all data up to a cutoff, then tests on the next window.
-# This prevents lookahead bias (using future data to predict the past).
 
-n = len(returns)
+n           = len(returns)
 n_splits    = 5
-test_size   = int(n * 0.10)   # each test fold = ~10% of total data
-min_train   = int(n * 0.50)   # minimum training window = 50% of data
+test_size   = int(n * 0.10)
+min_train   = int(n * 0.50)
 
-# Build fold boundaries
 folds = []
 for i in range(n_splits):
     test_end   = n - (n_splits - 1 - i) * test_size
@@ -102,13 +92,6 @@ print(f"Walk-forward validation: {len(folds)} folds\n")
 # =============================================================================
 # STEP 3: GARCH(1,1) WALK-FORWARD LOOP
 # =============================================================================
-# For each fold:
-#   1. Fit GARCH(1,1) on the training window
-#   2. Forecast one-step-ahead volatility for each day in the test window
-#      (we re-fit each day so the model sees the latest data -- this is the
-#      correct walk-forward approach, not fitting once and projecting forward)
-#   3. Compare predicted volatility to realized volatility
-#   4. Use a threshold rule to convert volatility forecast → direction signal
 
 fold_results = []
 
@@ -124,34 +107,21 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
     print(f"  Test:  {returns.index[test_start].date()} → "
           f"{returns.index[test_end - 1].date()} ({test_end - test_start} days)")
 
-    # --- Rolling one-step-ahead volatility forecasts ---
-    # We step through the test window day by day.
-    # At each step we fit GARCH on all data up to (but not including) that day,
-    # then forecast one day ahead.
-
     predicted_vol  = []
     realized_vol   = []
     predicted_dirs = []
 
-    # Compute the rolling median volatility on the training set.
-    # We use this as the threshold: if predicted vol > median → predict "down"
-    # The intuition: above-average expected volatility → higher crash risk
     train_realized_vol = train_returns.rolling(window=5).std().dropna()
     vol_threshold = train_realized_vol.median()
 
     for step in range(len(test_returns)):
 
-        # Expand training window one day at a time
         current_train = pd.concat([
             train_returns,
             test_returns.iloc[:step]
         ])
 
         try:
-            # Fit GARCH(1,1): p=1 (one lag of squared shock),
-            #                  q=1 (one lag of variance)
-            # mean='Zero' because daily returns are close to zero mean
-            # vol='GARCH' specifies the standard GARCH volatility process
             model = arch_model(
                 current_train,
                 mean='Zero',
@@ -161,21 +131,13 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
                 rescale=False
             )
             result = model.fit(disp='off', show_warning=False)
-
-            # Forecast one step ahead
-            # horizon=1 means predict the variance for the next single day
             forecast = result.forecast(horizon=1)
-
-            # forecast.variance gives the predicted variance -- take sqrt for vol
             pred_variance = forecast.variance.values[-1, 0]
             pred_vol      = np.sqrt(pred_variance)
 
         except Exception:
-            # If optimizer fails (rare), fall back to recent rolling volatility
             pred_vol = current_train.tail(20).std()
 
-        # Realized volatility: 5-day rolling std ending at this test day
-        # This is what we compare against -- how volatile the market actually was
         if step >= 4:
             realized = test_returns.iloc[step - 4: step + 1].std()
         else:
@@ -186,27 +148,20 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
         predicted_vol.append(pred_vol)
         realized_vol.append(realized)
 
-        # Direction rule:
-        # High predicted volatility → predict "down" (market more likely to fall)
-        # Low predicted volatility  → predict "up"
         if pred_vol > vol_threshold:
-            predicted_dirs.append(0)  # predict down
+            predicted_dirs.append(0)
         else:
-            predicted_dirs.append(1)  # predict up
+            predicted_dirs.append(1)
 
-    # --- Evaluate this fold ---
     predicted_vol  = np.array(predicted_vol)
     realized_vol   = np.array(realized_vol)
     predicted_dirs = np.array(predicted_dirs)
     actual_dirs    = test_dir.values
 
-    # Volatility metrics (RMSE and MAE on percentage volatility)
     vol_rmse = np.sqrt(np.mean((predicted_vol - realized_vol) ** 2))
     vol_mae  = np.mean(np.abs(predicted_vol - realized_vol))
-
-    # Direction metrics (from the threshold rule)
-    dir_acc = accuracy_score(actual_dirs, predicted_dirs)
-    dir_f1  = f1_score(actual_dirs, predicted_dirs, zero_division=0)
+    dir_acc  = accuracy_score(actual_dirs, predicted_dirs)
+    dir_f1   = f1_score(actual_dirs, predicted_dirs, zero_division=0)
 
     print(f"  Vol RMSE: {vol_rmse:.4f}%  |  Vol MAE: {vol_mae:.4f}%")
     print(f"  Direction Accuracy: {dir_acc:.4f} ({dir_acc*100:.2f}%)")
@@ -245,7 +200,7 @@ mean_vol_mae   = results_df["vol_mae"].mean()
 mean_dir_acc   = results_df["dir_accuracy"].mean()
 mean_f1        = results_df["f1_score"].mean()
 
-naive_baseline = 0.5393  # Always Up accuracy from Day 6
+naive_baseline = 0.5393
 
 print("=" * 60)
 print("GARCH(1,1) SUMMARY ACROSS ALL FOLDS")
@@ -260,7 +215,6 @@ print("=" * 60)
 # =============================================================================
 # STEP 5: SAVE RESULTS TO model_comparison.csv
 # =============================================================================
-# Append GARCH results to the same CSV that holds the naive baseline and ARIMA
 
 results_dir = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -283,7 +237,6 @@ new_row = pd.DataFrame([{
 
 if os.path.exists(comparison_path):
     existing = pd.read_csv(comparison_path)
-    # Remove any old GARCH row if re-running
     existing = existing[existing["model"] != "GARCH(1,1)"]
     combined = pd.concat([existing, new_row], ignore_index=True)
 else:
@@ -300,63 +253,66 @@ figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
-fig.suptitle("Day 8: GARCH(1,1) Results", fontsize=14, fontweight="bold")
+fig.suptitle("Part 8: GARCH(1,1) Results", fontsize=14, fontweight="bold", color="white")
 
 # --- Plot 1: Direction Accuracy per Fold ---
-ax1 = axes[0]
+ax1       = axes[0]
 fold_nums = results_df["fold"].tolist()
 dir_accs  = results_df["dir_accuracy"].tolist()
 colors    = ["#e05c5c" if a < naive_baseline else "#5ce0a0" for a in dir_accs]
-bars = ax1.bar(fold_nums, [a * 100 for a in dir_accs], color=colors, alpha=0.85)
+bars      = ax1.bar(fold_nums, [a * 100 for a in dir_accs], color=colors, alpha=0.85)
 ax1.axhline(naive_baseline * 100, color="white", linestyle="--",
             linewidth=1.5, label=f"Naive baseline ({naive_baseline*100:.1f}%)")
 ax1.axhline(50, color="gray", linestyle=":", linewidth=1, label="50% random")
-ax1.set_xlabel("Fold")
-ax1.set_ylabel("Direction Accuracy (%)")
-ax1.set_title("Direction Accuracy per Fold")
+ax1.set_xlabel("Fold", color="white")
+ax1.set_ylabel("Direction Accuracy (%)", color="white")
+ax1.set_title("Direction Accuracy per Fold", color="white")
 ax1.set_xticks(fold_nums)
 ax1.legend(fontsize=8)
 ax1.set_ylim(40, 65)
+ax1.tick_params(colors="white")
 for bar, acc in zip(bars, dir_accs):
     ax1.text(bar.get_x() + bar.get_width() / 2,
              bar.get_height() + 0.3,
-             f"{acc*100:.1f}%", ha="center", va="bottom", fontsize=8)
+             f"{acc*100:.1f}%", ha="center", va="bottom", fontsize=8, color="white")
 
 # --- Plot 2: Predicted vs Realized Volatility (last fold) ---
-ax2 = axes[1]
+ax2  = axes[1]
 last = fold_results[-1]
-x = range(len(last["pred_vol"]))
+x    = range(len(last["pred_vol"]))
 ax2.plot(x, last["realized_vol"], color="#aaaaaa", linewidth=1,
          label="Realized vol", alpha=0.8)
 ax2.plot(x, last["pred_vol"], color="#5cb8e0", linewidth=1.2,
          label="Predicted vol (GARCH)", alpha=0.9)
-ax2.set_xlabel("Test Day (last fold)")
-ax2.set_ylabel("Volatility (%)")
-ax2.set_title("Predicted vs Realized Volatility\n(Last Fold)")
+ax2.set_xlabel("Test Day (last fold)", color="white")
+ax2.set_ylabel("Volatility (%)", color="white")
+ax2.set_title("Predicted vs Realized Volatility\n(Last Fold)", color="white")
 ax2.legend(fontsize=8)
+ax2.tick_params(colors="white")
 
 # --- Plot 3: Model Comparison Bar Chart ---
-ax3 = axes[2]
+ax3        = axes[2]
 models     = ["Always Up\n(Naive)", "Persistence\n(Naive)", "ARIMA\n(1,0,1)", "GARCH\n(1,1)"]
 accuracies = [53.93, 49.77, 50.73, mean_dir_acc * 100]
 bar_colors = ["#888888", "#888888", "#e0a85c", "#5cb8e0"]
-bars3 = ax3.bar(models, accuracies, color=bar_colors, alpha=0.85)
+bars3      = ax3.bar(models, accuracies, color=bar_colors, alpha=0.85)
 ax3.axhline(naive_baseline * 100, color="white", linestyle="--",
             linewidth=1.5, label=f"Naive floor ({naive_baseline*100:.1f}%)")
 ax3.axhline(50, color="gray", linestyle=":", linewidth=1)
-ax3.set_ylabel("Direction Accuracy (%)")
-ax3.set_title("All Models So Far")
+ax3.set_ylabel("Direction Accuracy (%)", color="white")
+ax3.set_title("All Models So Far", color="white")
 ax3.set_ylim(40, 65)
 ax3.legend(fontsize=8)
+ax3.tick_params(colors="white")
 for bar, acc in zip(bars3, accuracies):
     ax3.text(bar.get_x() + bar.get_width() / 2,
              bar.get_height() + 0.3,
-             f"{acc:.1f}%", ha="center", va="bottom", fontsize=8)
+             f"{acc:.1f}%", ha="center", va="bottom", fontsize=8, color="white")
 
 plt.tight_layout()
-fig_path = os.path.join(figures_dir, "day8_garch_results.png")
+fig_path = os.path.join(figures_dir, "part8_garch_results.png")
 plt.savefig(fig_path, dpi=150, bbox_inches="tight")
-plt.close()
+plt.show()
 print(f"Saved figure to: {fig_path}")
 
 # =============================================================================
@@ -375,4 +331,4 @@ print(f"vs Naive baseline:       {(mean_dir_acc - naive_baseline)*100:+.2f} pp")
 print(f"Mean vol RMSE:           {mean_vol_rmse:.4f}%")
 print(f"Mean vol MAE:            {mean_vol_mae:.4f}%")
 print("=" * 60)
-print("\nDay 8 complete. Next: Day 9 -- GBM + Monte Carlo")
+print("\nPart 8 complete. Next: Part 9 -- GBM + Monte Carlo")

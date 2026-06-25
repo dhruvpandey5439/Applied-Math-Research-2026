@@ -41,6 +41,7 @@ print(f"\nTrain: {train.index.min().date()} to {train.index.max().date()} ({len(
 print(f"Test:  {test.index.min().date()} to {test.index.max().date()} ({len(test)} rows)")
 
 y_true = test["target_direction"]
+plt.style.use("dark_background")
 
 # =============================================================================
 # STEP 3: Baseline 1 -- "Always Up"

@@ -1,5 +1,5 @@
 # =============================================================================
-# DAY 9: GBM + MONTE CARLO SIMULATION
+# PART 9: GBM + MONTE CARLO SIMULATION
 # =============================================================================
 # Research Question:
 # To what extent do increasingly complex machine learning models improve
@@ -45,13 +45,15 @@ import os
 import warnings
 import numpy as np
 import pandas as pd
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, f1_score
 
 warnings.filterwarnings("ignore")
+
 plt.style.use("dark_background")
+plt.rcParams["figure.facecolor"]  = "#0e0e0e"
+plt.rcParams["axes.facecolor"]    = "#1a1a1a"
+plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
 # =============================================================================
 # STEP 1: LOAD DATA
@@ -70,8 +72,6 @@ print(f"Data loaded: {data.index[0].date()} to {data.index[-1].date()} "
       f"({len(data)} rows)")
 print(f"Columns: {list(data.columns)}\n")
 
-# We need the Return column to calibrate μ and σ
-# We need Close price to simulate tomorrow's price from today's price
 returns          = data["Return"]
 target_direction = data["target_direction"]
 target_return    = data["target_return"]
@@ -79,7 +79,6 @@ target_return    = data["target_return"]
 # =============================================================================
 # STEP 2: WALK-FORWARD VALIDATION SETUP
 # =============================================================================
-# Same 5-fold walk-forward setup used in Days 7 and 8.
 
 n           = len(returns)
 n_splits    = 5
@@ -113,7 +112,7 @@ def simulate_gbm_direction(mu, sigma, S0, n_simulations=1000, dt=1):
         dt            : time step in days (1 = one day ahead)
 
     Returns:
-        direction     : 1 if median simulated price > S0, else 0
+        direction        : 1 if median simulated price > S0, else 0
         simulated_prices : array of all simulated next-day prices
 
     How it works:
@@ -126,29 +125,16 @@ def simulate_gbm_direction(mu, sigma, S0, n_simulations=1000, dt=1):
         We draw 1000 different Z values → 1000 different S(t+1) values.
         The median of those 1000 values is our point forecast.
     """
-    # Draw N random standard normal values -- one per simulation path
-    Z = np.random.standard_normal(n_simulations)
-
-    # Apply the discrete GBM equation
-    # (mu - 0.5 * sigma**2) is the drift adjustment (Ito's lemma correction)
+    Z                = np.random.standard_normal(n_simulations)
     simulated_prices = S0 * np.exp((mu - 0.5 * sigma**2) * dt + sigma * np.sqrt(dt) * Z)
-
-    # Use median simulated price as direction forecast
-    median_price = np.median(simulated_prices)
-    direction    = 1 if median_price > S0 else 0
-
+    median_price     = np.median(simulated_prices)
+    direction        = 1 if median_price > S0 else 0
     return direction, simulated_prices
 
 # =============================================================================
 # STEP 4: GBM WALK-FORWARD LOOP
 # =============================================================================
-# For each fold:
-#   1. Calibrate μ and σ from the training window returns
-#   2. For each test day: simulate 1000 GBM paths one step ahead
-#   3. Use median path to produce a direction forecast
-#   4. Evaluate accuracy and F1 against actual direction
 
-# Set random seed for reproducibility
 np.random.seed(42)
 
 fold_results = []
@@ -165,28 +151,20 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
     print(f"  Test:  {returns.index[test_start].date()} → "
           f"{returns.index[test_end - 1].date()} ({test_end - test_start} days)")
 
-    # --- Calibrate μ and σ from training data ---
-    # μ = mean daily log return on training window
-    # σ = std of daily log returns on training window
-    # We re-calibrate at each fold (expanding window -- sees more history each time)
     mu_train    = train_returns.mean()
     sigma_train = train_returns.std()
 
     print(f"  Calibrated μ (drift):     {mu_train:.6f}")
     print(f"  Calibrated σ (vol):       {sigma_train:.6f}")
 
-    predicted_dirs  = []
+    predicted_dirs    = []
     predicted_returns = []
 
     for step in range(len(test_returns)):
 
-        # Today's price: use the Close price at the current test step
-        # We need this as S0 for the GBM simulation
         today_idx = test_start + step
-        S0 = data["Close"].iloc[today_idx]
+        S0        = data["Close"].iloc[today_idx]
 
-        # Re-calibrate μ and σ on expanding window
-        # (include all training data + test days seen so far)
         current_returns = pd.concat([
             train_returns,
             test_returns.iloc[:step]
@@ -194,7 +172,6 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
         mu    = current_returns.mean()
         sigma = current_returns.std()
 
-        # Simulate 1000 GBM paths one step ahead
         direction, simulated_prices = simulate_gbm_direction(
             mu=mu,
             sigma=sigma,
@@ -203,14 +180,12 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
             dt=1
         )
 
-        # Predicted return = (median simulated price - today price) / today price
-        median_price      = np.median(simulated_prices)
-        predicted_return  = (median_price - S0) / S0
+        median_price     = np.median(simulated_prices)
+        predicted_return = (median_price - S0) / S0
 
         predicted_dirs.append(direction)
         predicted_returns.append(predicted_return)
 
-    # --- Evaluate this fold ---
     predicted_dirs    = np.array(predicted_dirs)
     predicted_returns = np.array(predicted_returns)
     actual_dirs       = test_dir.values
@@ -312,7 +287,7 @@ figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
 
 fig, axes = plt.subplots(1, 3, figsize=(16, 5))
-fig.suptitle("Day 9: GBM + Monte Carlo Results", fontsize=14, fontweight="bold")
+fig.suptitle("Part 9: GBM + Monte Carlo Results", fontsize=14, fontweight="bold", color="white")
 
 # --- Plot 1: Direction Accuracy per Fold ---
 ax1       = axes[0]
@@ -323,41 +298,42 @@ bars      = ax1.bar(fold_nums, [a * 100 for a in dir_accs], color=colors, alpha=
 ax1.axhline(naive_baseline * 100, color="white", linestyle="--",
             linewidth=1.5, label=f"Naive baseline ({naive_baseline*100:.1f}%)")
 ax1.axhline(50, color="gray", linestyle=":", linewidth=1, label="50% random")
-ax1.set_xlabel("Fold")
-ax1.set_ylabel("Direction Accuracy (%)")
-ax1.set_title("Direction Accuracy per Fold")
+ax1.set_xlabel("Fold", color="white")
+ax1.set_ylabel("Direction Accuracy (%)", color="white")
+ax1.set_title("Direction Accuracy per Fold", color="white")
 ax1.set_xticks(fold_nums)
 ax1.legend(fontsize=8)
 ax1.set_ylim(40, 65)
+ax1.tick_params(colors="white")
 for bar, acc in zip(bars, dir_accs):
     ax1.text(bar.get_x() + bar.get_width() / 2,
              bar.get_height() + 0.3,
-             f"{acc*100:.1f}%", ha="center", va="bottom", fontsize=8)
+             f"{acc*100:.1f}%", ha="center", va="bottom", fontsize=8, color="white")
 
-# --- Plot 2: Example Monte Carlo fan (last fold, last test day) ---
-ax2 = axes[1]
-# Re-simulate 200 paths just for the visualization (last fold last day)
-last_fold    = fold_results[-1]
+# --- Plot 2: Monte Carlo Distribution (last fold, last test day) ---
+ax2          = axes[1]
 last_returns = returns.iloc[folds[-1][0]:folds[-1][1]]
 mu_viz       = last_returns.mean()
 sigma_viz    = last_returns.std()
 last_S0      = data["Close"].iloc[folds[-1][3] - 1]
 
 np.random.seed(99)
-n_viz = 200
-Z_viz = np.random.standard_normal(n_viz)
+n_viz          = 200
+Z_viz          = np.random.standard_normal(n_viz)
 sim_prices_viz = last_S0 * np.exp(
     (mu_viz - 0.5 * sigma_viz**2) + sigma_viz * Z_viz
 )
 
 ax2.hist(sim_prices_viz, bins=30, color="#5cb8e0", alpha=0.7, edgecolor="none")
-ax2.axvline(last_S0, color="white", linewidth=1.5, linestyle="--", label=f"Today: {last_S0:.1f}")
+ax2.axvline(last_S0, color="white", linewidth=1.5, linestyle="--",
+            label=f"Today: {last_S0:.1f}")
 ax2.axvline(np.median(sim_prices_viz), color="#5ce0a0", linewidth=1.5,
-            label=f"Median forecast: {np.median(sim_prices_viz):.1f}")
-ax2.set_xlabel("Simulated Next-Day Price")
-ax2.set_ylabel("Count")
-ax2.set_title("Monte Carlo Distribution\n(200 simulated paths, last test day)")
+            label=f"Median: {np.median(sim_prices_viz):.1f}")
+ax2.set_xlabel("Simulated Next-Day Price", color="white")
+ax2.set_ylabel("Count", color="white")
+ax2.set_title("Monte Carlo Distribution\n(200 paths, last test day)", color="white")
 ax2.legend(fontsize=8)
+ax2.tick_params(colors="white")
 
 # --- Plot 3: All Models Comparison ---
 ax3        = axes[2]
@@ -369,19 +345,20 @@ bars3      = ax3.bar(models, accuracies, color=bar_colors, alpha=0.85)
 ax3.axhline(naive_baseline * 100, color="white", linestyle="--",
             linewidth=1.5, label=f"Naive floor ({naive_baseline*100:.1f}%)")
 ax3.axhline(50, color="gray", linestyle=":", linewidth=1)
-ax3.set_ylabel("Direction Accuracy (%)")
-ax3.set_title("All Models So Far")
+ax3.set_ylabel("Direction Accuracy (%)", color="white")
+ax3.set_title("All Models So Far", color="white")
 ax3.set_ylim(40, 65)
 ax3.legend(fontsize=8)
+ax3.tick_params(colors="white")
 for bar, acc in zip(bars3, accuracies):
     ax3.text(bar.get_x() + bar.get_width() / 2,
              bar.get_height() + 0.3,
-             f"{acc:.1f}%", ha="center", va="bottom", fontsize=8)
+             f"{acc:.1f}%", ha="center", va="bottom", fontsize=8, color="white")
 
 plt.tight_layout()
-fig_path = os.path.join(figures_dir, "day9_gbm_results.png")
+fig_path = os.path.join(figures_dir, "part9_gbm_results.png")
 plt.savefig(fig_path, dpi=150, bbox_inches="tight")
-plt.close()
+plt.show()
 print(f"Saved figure to: {fig_path}")
 
 # =============================================================================
