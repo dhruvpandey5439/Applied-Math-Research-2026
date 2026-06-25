@@ -122,7 +122,7 @@ GARCH represents the classical statistical tradition alongside ARIMA. Together A
 ## (2026-06-24) Part 9 — GBM + Monte Carlo Simulation
 
 
-**What I did**
+**What I did:**
 Implemented Geometric Brownian Motion + Monte Carlo simulation using the
 mathematical finance tradition. For each test day, calibrated μ (drift)
 and σ (volatility) from the training window, then simulated 1000 possible
@@ -147,7 +147,7 @@ vs Naive Baseline       : -1.83 pp
 
 ---
 
-** What This Means**
+**What This Means:**
 GBM is the best performing classical model for direction prediction --
 still below the naive baseline but closer to it than ARIMA or GARCH.
 Pure mathematical theory with no pattern learning came closer to the
@@ -163,7 +163,7 @@ often -- which works in bull periods and fails in choppy ones.
 
 ---
 
-** End of Phase 2-- Full Classical Scorecard**
+**End of Phase 2-- Full Classical Scorecard:**
 
 Model              | Accuracy | vs Baseline
 Always Up (Naive)  | 53.93%   | THE FLOOR
@@ -177,7 +177,7 @@ The ML models in Phase 3 now need to beat 53.93% to justify complexity.
 
 ---
 
-** Connections to Literature**
+**Connections to Literature:**
 - Samuelson (1965) -- GBM as the mathematical model of stock prices
 - Black & Scholes (1973) -- options pricing built on top of GBM
 - Fama (1970) -- EMH: results consistent with weak-form efficiency
