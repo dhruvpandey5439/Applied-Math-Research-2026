@@ -83,9 +83,70 @@ at -1.83pp, ARIMA at -3.20pp, GARCH at -4.70pp. This is consistent with
 EMH (Fama 1970) and Makridakis (2018). The ML models now need to beat
 53.93% to justify their added complexity.
 
+**First ML model to beat the naive baseline:**
+Logistic Regression achieved 54.40% -- the first model in the entire
+project to exceed the 53.93% naive floor. Small margin (+0.47pp) but
+real. This is the turning point in the project narrative: simple ML
+can extract a tiny signal that classical models could not.
+
+**Why Ridge underperformed for direction:**
+Ridge is optimized to minimize return magnitude error (RMSE), not
+direction accuracy. Taking the sign of a predicted return to get a
+direction is a weak heuristic -- the model was never trained to care
+about getting the direction right, only about getting the size right.
+This is why Logistic Regression (trained directly on direction) beat
+Ridge for the direction task even though both are linear models.
+
+**Anti-momentum signal confirmed in ML:**
+return_ma_5 had the strongest negative coefficient -- recent upward
+5-day momentum slightly predicts a down day. This is consistent with
+the near-zero autocorrelation from Part 2 and the persistence baseline
+scoring below 50% in Part 6. The signal is tiny but present.
+
 ## Machine Learning
 
 **(Fischer & Krauss (2018) key finding:** LSTM achieved only 56% directional accuracy on S&P 500 constituents. Random Forest outperformed LSTM in trading returns despite deep learning's reputation for superiority. This is a published benchmark to compare our own results against.
+
+**Logistic Regression:**
+Despite the name it is a classifier not a regressor. Takes features and
+finds a LINEAR boundary separating up days from down days in feature space.
+Output is a probability between 0 and 1 -- if above 0.5 predict up, else down.
+Core equation: prediction = w1*x1 + w2*x2 + ... + wn*xn + b
+Where x = features, w = learned weights, b = bias term.
+C=0.1 means moderate regularization -- smaller C = stronger penalty.
+
+**Ridge Regression:**
+Linear regression with L2 regularization penalty added to prevent overfitting.
+Predicts continuous return values, not direction directly.
+Direction derived by taking the sign of the predicted return (positive = up).
+alpha=1.0 controls regularization strength -- larger alpha = stronger penalty.
+Real metric for Ridge is RMSE (0.010454), not direction accuracy.
+
+**Regularization:**
+Without it, linear models overfit by assigning huge weights to certain
+features. Regularization adds a penalty term that keeps all weights small
+and stable. Ridge uses L2 penalty = alpha * sum(w²). Logistic uses C
+where smaller C = stronger regularization (inverse relationship).
+Prevents the model from memorizing noise in training data.
+
+**StandardScaler:**
+Transforms each feature to mean=0 and std=1 before fitting.
+Critical for linear models because features have very different scales
+(return_lag_1 ≈ 0.001 vs volatility_20 ≈ 0.015). Without scaling the
+model gives more weight to larger-valued features just because of scale,
+not actual predictive power.
+IMPORTANT: fit scaler ONLY on training data, then apply to test.
+Fitting on test data leaks future information -- same lookahead bias issue
+from Part 3 features, just appearing at a different stage.
+
+**Feature coefficients (importance):**
+In logistic regression, each feature gets a weight (coefficient).
+Larger absolute value = more influence on the prediction.
+Positive coefficient = feature pushes prediction toward "up."
+Negative coefficient = feature pushes prediction toward "down."
+return_ma_5 had the strongest coefficient (-0.044) -- recent upward
+momentum slightly predicts reversal (anti-momentum, consistent with Day 2).
+All volatility features had negative coefficients -- high vol predicts down.
 
 ## Math / Statistics
 
