@@ -121,7 +121,6 @@ GARCH represents the classical statistical tradition alongside ARIMA. Together A
 
 ## (2026-06-24) Part 9 — GBM + Monte Carlo Simulation
 
-
 **What I did:**
 Implemented Geometric Brownian Motion + Monte Carlo simulation using the
 mathematical finance tradition. For each test day, calibrated μ (drift)
@@ -182,4 +181,78 @@ The ML models in Phase 3 now need to beat 53.93% to justify complexity.
 - Black & Scholes (1973) -- options pricing built on top of GBM
 - Fama (1970) -- EMH: results consistent with weak-form efficiency
 - Makridakis (2018) -- classical methods matching ML, confirmed here
+
+
+## (2026-06-26) Part 10 - Logistic Regression + Ridge Regression
+
+ **What I Did**
+Implemented the first two ML models using all 9 engineered features from
+Part 3. This is the first time the full feature set was used -- all
+classical models (ARIMA, GARCH, GBM) were univariate and only used the
+Return column. Used 5-fold walk-forward validation with StandardScaler
+applied to training data only to prevent lookahead bias.
+
+Two models:
+- Logistic Regression (C=0.1): classification -- predicts direction (up/down)
+- Ridge Regression (alpha=1.0): regression -- predicts continuous return value,
+  direction derived from sign of predicted return
+
+
+**Results**
+
+Fold 1 | Test: 2013-04-09 → 2015-11-18 | Logistic Acc: 54.01% | F1: 0.7002 | Ridge Dir Acc: 52.34% | RMSE: 0.008092 | MAE: 0.005969
+Fold 2 | Test: 2015-11-19 → 2018-07-06 | Logistic Acc: 54.92% | F1: 0.7067 | Ridge Dir Acc: 50.08% | RMSE: 0.007580 | MAE: 0.005156
+Fold 3 | Test: 2018-07-09 → 2021-02-22 | Logistic Acc: 54.92% | F1: 0.6972 | Ridge Dir Acc: 50.08% | RMSE: 0.015458 | MAE: 0.009156
+Fold 4 | Test: 2021-02-23 → 2023-10-06 | Logistic Acc: 50.53% | F1: 0.6680 | Ridge Dir Acc: 49.92% | RMSE: 0.011449 | MAE: 0.008542
+Fold 5 | Test: 2023-10-09 → 2026-05-28 | Logistic Acc: 57.64% | F1: 0.7297 | Ridge Dir Acc: 51.44% | RMSE: 0.009691 | MAE: 0.006566
+
+Logistic Regression:
+Mean Accuracy        : 54.40%
+Mean F1 Score        : 0.7004
+vs Naive Baseline    : +0.47 pp ✅ FIRST MODEL TO BEAT THE FLOOR
+
+Ridge Regression:
+Mean Dir Accuracy    : 50.77%
+Mean F1 Score        : 0.5754
+Mean RMSE            : 0.010454
+Mean MAE             : 0.007078
+vs Naive Baseline    : -3.16 pp
+
+**Feature Importance (Logistic Regression coefficients)**
+
+return_ma_5    : -0.044842  (strongest negative -- recent momentum predicts down)
+return_lag_2   : +0.036750  (positive -- 2-day lag predicts up)
+return_lag_1   : +0.029408  (positive -- yesterday predicts up)
+volatility_5   : -0.027890  (negative -- high vol predicts down)
+return_ma_10   : -0.027082  (negative)
+volatility_10  : -0.026790  (negative)
+return_lag_3   : +0.009581
+return_lag_5   : +0.009090
+volatility_20  : -0.001782  (weakest -- long-run vol barely matters)
+
+
+**What This Means**
+Logistic Regression is the FIRST model in the entire project to beat the
+naive baseline -- 54.40% vs 53.93% floor (+0.47pp). Small margin but real.
+
+Ridge Regression underperformed at 50.77%. This is expected -- Ridge is
+optimized to minimize return magnitude error (RMSE), not direction accuracy.
+Converting predicted returns to direction by taking the sign is a weak
+heuristic. Ridge's real contribution is the RMSE metric (0.010454).
+
+Feature story: the model found slight anti-momentum signal in return_ma_5
+(negative coefficient -- recent upward trend predicts reversal) and slight
+momentum in individual lags (positive coefficients on lag_1 and lag_2).
+All volatility features had negative coefficients -- high volatility predicts
+down days. Consistent with Day 2 findings and EMH.
+
+Regime dependence still present:
+- Fold 4 (2021-2023): 50.53% -- choppy post-COVID market killed signal
+- Fold 5 (2023-2026): 57.64% -- best fold, strong bull market
+
+ **Connections to Literature**
+- Fama (1970) -- EMH: even the first ML model barely beats random
+- Makridakis (2018) -- classical methods competitive with simple ML, confirmed
+- Fischer & Krauss (2018) -- benchmark: LSTM got 56%, Logistic at 54.4%
+  is already in the same ballpark with a far simpler model
 
