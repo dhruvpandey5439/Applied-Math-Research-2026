@@ -83,7 +83,7 @@ What I learned: ARIMA performed worse than the naive baseline on average, confir
 
 Problems: None.
 
-### (2026-06-22  -  2026-06-23) Part 8: 
+### (2026-06-22  -  2026-06-23) Part 8: GARCH
 
 What I Did
 Implemented GARCH(1,1) using the arch library with walk-forward validation across 5 folds. GARCH is a volatility model — it predicts how uncertain tomorrow will be, not which direction the market moves. To make it comparable to other models, I derived a direction signal from its volatility forecast: if predicted volatility is above the training median, predict down; if below, predict up.
@@ -256,3 +256,106 @@ Regime dependence still present:
 - Fischer & Krauss (2018) -- benchmark: LSTM got 56%, Logistic at 54.4%
   is already in the same ballpark with a far simpler model
 
+### (2026-06-27 - 2026-06-28) Part 11 - Random Forest + XGBoost
+
+**What I Did**
+Implemented Random Forest and XGBoost using the same 9 engineered features
+and 5-fold walk-forward validation as Part 10. No StandardScaler needed --
+tree-based models split on feature value thresholds so scale doesn't matter.
+Both models classify direction directly (up/down).
+
+Random Forest: 200 trees, max_depth=4, min_samples_leaf=20
+XGBoost: 200 rounds, max_depth=3, learning_rate=0.05, subsample=0.8
+
+---
+
+**Results**
+
+Random Forest:
+Fold 1 | Test: 2013-04-09 → 2015-11-18 | Accuracy: 52.65% | F1: 0.6783
+Fold 2 | Test: 2015-11-19 → 2018-07-06 | Accuracy: 54.46% | F1: 0.6963
+Fold 3 | Test: 2018-07-09 → 2021-02-22 | Accuracy: 54.16% | F1: 0.6873
+Fold 4 | Test: 2021-02-23 → 2023-10-06 | Accuracy: 51.29% | F1: 0.6694
+Fold 5 | Test: 2023-10-09 → 2026-05-28 | Accuracy: 55.37% | F1: 0.7082
+
+Mean Accuracy     : 53.59%
+Mean F1           : 0.6879
+vs Naive Baseline : -0.34 pp
+vs Logistic Reg   : -0.81 pp
+
+XGBoost:
+Fold 1 | Test: 2013-04-09 → 2015-11-18 | Accuracy: 51.89% | F1: 0.6232
+Fold 2 | Test: 2015-11-19 → 2018-07-06 | Accuracy: 52.19% | F1: 0.6099
+Fold 3 | Test: 2018-07-09 → 2021-02-22 | Accuracy: 51.44% | F1: 0.6254
+Fold 4 | Test: 2021-02-23 → 2023-10-06 | Accuracy: 50.83% | F1: 0.6126
+Fold 5 | Test: 2023-10-09 → 2026-05-28 | Accuracy: 53.25% | F1: 0.6570
+
+Mean Accuracy     : 51.92%
+Mean F1           : 0.6256
+vs Naive Baseline : -2.01 pp
+vs Logistic Reg   : -2.48 pp
+
+---
+
+**Feature Importance**
+
+feature       | RF importance | XGB importance
+return_ma_10  | 0.1454        | 0.1112
+return_lag_1  | 0.1216        | 0.1114
+return_ma_5   | 0.1182        | 0.1046
+volatility_10 | 0.1140        | 0.1135
+return_lag_5  | 0.1135        | 0.1050
+return_lag_2  | 0.0984        | 0.1081
+volatility_5  | 0.0978        | 0.1142
+return_lag_3  | 0.0957        | 0.1123
+volatility_20 | 0.0954        | 0.1198
+
+---
+
+**What This Means**
+Both complex ML models underperformed Logistic Regression -- the simpler
+linear model. This is one of the most important findings in the project.
+
+Three reasons why:
+1. Features are weak. All 9 features come from past returns and volatility.
+   Near-zero autocorrelation means barely any signal exists regardless of
+   model complexity. There is not much to find.
+2. Complex models overfit more. Logistic Regression is constrained to a
+   linear boundary which works better here because the true signal (if any)
+   is tiny and approximately linear. RF and XGBoost have more capacity to
+   memorize noise in training data.
+3. Consistent with Makridakis (2018) -- complexity does not automatically
+   help on noisy financial data.
+
+Feature importance was spread nearly uniformly across all 9 features in
+both models -- no single predictor dominates. This is exactly what EMH
+predicts: no feature should have strong consistent predictive power.
+
+---
+
+**Full Scorecard After Phase 3**
+
+Model              | Accuracy | vs Baseline
+Always Up (Naive)  | 53.93%   | THE FLOOR
+Logistic Regression| 54.40%   | +0.47 pp 
+GBM + Monte Carlo  | 52.10%   | -1.83 pp
+Random Forest      | 53.59%   | -0.34 pp
+ARIMA(1,0,1)       | 50.73%   | -3.20 pp
+Ridge Regression   | 50.77%   | -3.16 pp
+XGBoost            | 51.92%   | -2.01 pp
+Persistence        | 49.77%   | -4.16 pp
+GARCH(1,1)         | 49.23%   | -4.70 pp
+
+Only Logistic Regression beat the naive baseline so far.
+LSTM now needs to answer: does deep learning change this picture?
+
+---
+
+**Connections to Literature**
+- Makridakis (2018) -- complexity doesn't guarantee better forecasting,
+  confirmed directly here
+- Fama (1970) -- EMH: uniform feature importance is consistent with
+  no feature having persistent predictive power
+- Fischer & Krauss (2018) -- found RF outperformed LSTM in trading
+  returns despite LSTM's complexity. Our RF result here is consistent
+  with their finding that RF is competitive but not dominant.
