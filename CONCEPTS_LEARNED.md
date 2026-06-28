@@ -103,6 +103,18 @@ return_ma_5 had the strongest negative coefficient -- recent upward
 the near-zero autocorrelation from Part 2 and the persistence baseline
 scoring below 50% in Part 6. The signal is tiny but present.
 
+**Uniform feature importance = EMH confirmation:**
+Both RF and XGBoost spread importance nearly evenly across all 9 features.
+No single feature dominated. This is exactly what the Efficient Market
+Hypothesis predicts -- no past price feature should have persistent
+strong predictive power. If one did, the market would arbitrage it away.
+
+**Phase 3 finding:**
+Only Logistic Regression beat the naive baseline across all ML models.
+Adding non-linearity (RF, XGBoost) did not help and sometimes hurt.
+The project narrative going into LSTM: if even ensemble methods with
+200 trees can't beat a linear model, does deep learning change anything?
+
 ## Machine Learning
 
 **(Fischer & Krauss (2018) key finding:** LSTM achieved only 56% directional accuracy on S&P 500 constituents. Random Forest outperformed LSTM in trading returns despite deep learning's reputation for superiority. This is a published benchmark to compare our own results against.
@@ -147,6 +159,63 @@ Negative coefficient = feature pushes prediction toward "down."
 return_ma_5 had the strongest coefficient (-0.044) -- recent upward
 momentum slightly predicts reversal (anti-momentum, consistent with Day 2).
 All volatility features had negative coefficients -- high vol predicts down.
+
+**Random Forest:**
+An ensemble of many decision trees, each trained on a random subset of
+data rows and a random subset of features. Final prediction = majority
+vote across all trees. The randomness makes each tree different so their
+errors don't all go in the same direction -- when averaged out, errors
+cancel and signal remains. This is called bagging (bootstrap aggregating).
+Key parameters used:
+- n_estimators=200: number of trees
+- max_depth=4: limits tree depth to prevent overfitting
+- min_samples_leaf=20: each leaf needs at least 20 samples
+- max_features="sqrt": each tree only sees sqrt(9) ≈ 3 features
+
+**XGBoost (Extreme Gradient Boosting):**
+Builds decision trees SEQUENTIALLY -- each new tree is specifically
+trained to correct the mistakes the previous trees made. This is called
+gradient boosting. More powerful than Random Forest in theory but more
+sensitive to hyperparameter tuning and more prone to overfitting on
+noisy data.
+Key parameters used:
+- n_estimators=200: number of boosting rounds
+- max_depth=3: shallower than RF -- boosting compensates for depth
+- learning_rate=0.05: how much each tree corrects the previous
+- subsample=0.8: each tree trained on 80% of rows
+- colsample_bytree=0.8: each tree sees 80% of features
+
+**Bagging vs Boosting:**
+Bagging (Random Forest): trees built independently in parallel,
+errors averaged out. More robust to noisy data.
+Boosting (XGBoost): trees built sequentially, each fixing prior errors.
+More powerful on clean data but more sensitive to noise.
+On financial data (very noisy), bagging tends to be more stable --
+consistent with RF outperforming XGBoost here.
+
+**Why tree models don't need StandardScaler:**
+Decision trees split on feature value thresholds (e.g. "is return_lag_1
+> 0.005?"). The absolute scale of the feature doesn't change which
+threshold is chosen -- only the relative ordering of values matters.
+Scaling would not hurt but is completely unnecessary for tree models.
+This is different from linear models where scale directly affects weights.
+
+**Feature importance (tree models):**
+Random Forest: measures average reduction in impurity (Gini) across
+all splits using each feature across all trees.
+XGBoost: measures average gain in accuracy from splits using each feature.
+Both are on different scales so they can't be directly compared as numbers,
+but the ranking of features can be compared.
+Both models showed nearly uniform importance across all 9 features --
+no single feature dominated. Consistent with EMH.
+
+**Why complex ML underperformed simple ML here:**
+1. Features are weak -- near-zero autocorrelation means barely any
+   signal exists regardless of model complexity.
+2. RF and XGBoost have more capacity to memorize noise in training data
+   (overfit) than Logistic Regression's constrained linear boundary.
+3. Consistent with Makridakis (2018): complexity does not automatically
+   help on noisy financial time-series data.
 
 ## Math / Statistics
 
@@ -274,3 +343,4 @@ consistent with the near-zero ACF from Day 2 and the EMH.
 The mathematical exposition (second artifact) will derive the
 Black-Scholes PDE from GBM assumptions. Day 9 is the practical
 implementation of the same foundation that derivation sits on.
+
