@@ -1,3 +1,37 @@
+# =============================================================================
+# PART 11: RANDOM FOREST + XGBOOST
+# =============================================================================
+# Research Question:
+# To what extent do increasingly complex machine learning models improve
+# predictive performance compared to classical statistical AND mathematical
+# methods when forecasting financial time-series data?
+#
+# What these models are:
+# These are the COMPLEX ML models -- non-linear ensemble methods that can
+# capture feature interactions and non-linear patterns that linear models miss.
+#
+# Random Forest:
+#   Builds hundreds of decision trees, each trained on a random subset of
+#   data and features. Takes majority vote across all trees for final
+#   prediction. The randomness makes each tree slightly different so errors
+#   cancel out when averaged -- this is called "bagging" (bootstrap aggregating).
+#
+# XGBoost (Extreme Gradient Boosting):
+#   Builds trees SEQUENTIALLY -- each new tree is specifically trained to
+#   correct the mistakes the previous trees made. This is called gradient
+#   boosting. More powerful than Random Forest but more sensitive to tuning.
+#
+# Why these are "complex ML":
+#   Unlike Logistic/Ridge which find a single linear boundary, these models
+#   capture non-linear relationships and feature interactions:
+#   e.g. "when volatility is high AND return_lag_1 is negative → predict down"
+#   Linear models cannot represent this kind of conditional logic.
+#
+# Key question for the research:
+#   Logistic Regression got 54.40% (+0.47pp above baseline).
+#   Do non-linear ensemble methods do meaningfully better?
+#   This is what Part 11 answers.
+# =============================================================================
 
 import os
 import warnings

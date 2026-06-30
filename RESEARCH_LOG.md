@@ -359,3 +359,69 @@ LSTM now needs to answer: does deep learning change this picture?
 - Fischer & Krauss (2018) -- found RF outperformed LSTM in trading
   returns despite LSTM's complexity. Our RF result here is consistent
   with their finding that RF is competitive but not dominant.
+
+
+ ### (2026-06-29) Part 12: LSTM (Long Short-Term Memory)
+
+**What I did:**
+Built a 2-layer LSTM (64 units → 32 units → Dense sigmoid
+output) with Dropout(0.2) for regularization. Lookback window: 20 days.
+3-fold walk-forward validation. EarlyStopping(patience=15).
+Total trainable parameters: 31,393.
+
+**Environment issue encountered (significant):**
+TensorFlow failed to install/run on my main Python 3.11 environment.
+Two separate incompatible problems stacked on top of each other:
+  1. The newest TensorFlow (2.12+) requires AVX2 CPU instructions.
+     Unfortunately my CPU does not support AVX2 which was confirmed via DLL load failure
+  2. The oldest TensorFlow that does NOT require AVX2 (2.10.0 and
+     earlier) was never compiled for Python 3.11 so pip returned
+     "No matching distribution found for tensorflow==2.10.0" when
+     I tried installing it on Python 3.11, the version I had.
+  These two constraints don't overlap on my machine's Python version --
+  there is no single TensorFlow version that is both AVX2-free and
+  Python 3.11-compatible.
+
+Fix: Installed Python 3.10.11 alongside my existing 3.11 (does not
+replace it). Had to create an isolated virtual environment (tf_env) using
+py -3.10 -m venv tf_env specifically for this script, so the rest of
+my project keeps using my normal Python 3.11 setup untouched. Inside
+tf_env, installed tensorflow==2.10.0, pandas, numpy, scikit-learn,
+matplotlib.
+
+Second issue inside tf_env: numpy installed at its newest version
+(2.x) by default since I didn't pin it. However, TensorFlow 2.10.0's compiled
+C extensions were built against numpy 1.x's internal API and crashed
+with "_ARRAY_API not found" / "numpy.core._multiarray_umath failed
+to import" when numpy 2.x was present. Fixed by downgrading the numpy version by:
+pip install "numpy<2.0" inside tf_env.
+
+Lesson: deep learning libraries have much stricter and narrower
+hardware + dependency requirements than classical/statistical libraries.
+Every model up through Part 11 (ARIMA, GARCH, GBM, Logistic, Ridge,
+RF, XGBoost) ran without any environment issues on my normal setup.
+LSTM was the first model in the entire project complex enough to
+require its own isolated environment. This is worth noting in
+my Methodology or Limitations section -- it's a real practical
+consideration for anyone trying to reproduce deep learning results,
+not just a personal inconvenience.
+
+
+**Results (mean across 3 folds):**
+  Fold 1: 17 epochs, Accuracy=56.38%, F1=0.7156
+  Fold 2: 17 epochs, Accuracy=50.19%, F1=0.6425
+  Fold 3: 32 epochs, Accuracy=56.64%, F1=0.7205
+  Mean Direction Accuracy: 54.40%
+  Mean F1 Score:           0.6928
+  vs Naive Baseline:       +0.47pp
+  Mean Epochs Run:         22.0
+
+**What I learned:**
+LSTM landed on the EXACT SAME mean accuracy (54.40%)
+and EXACT SAME margin over baseline (+0.47pp) as Logistic Regression
+from Part 10 -- despite having 31,393 parameters and reading 20-day
+sequences vs Logistic's 9 simple coefficients and zero memory.
+This directly reproduces the Fischer & Krauss (2018) finding that
+more model complexity does not reliably improve financial forecasting.
+Fold 2 essentially collapsed to baseline (50.19%) -- regime-dependence,
+same pattern seen in ARIMA and Logistic Regression.
