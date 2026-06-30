@@ -16,6 +16,24 @@ Organized into four sections: Python Basics, Financial Forecasting Terms, Machin
 
 **.rolling(window=n):** looks at the last n rows at a time (a "moving window") and lets you calculate something across just those rows, like .mean() or .std(), e.g. a 5-day rolling average or rolling volatility.2. 
 
+Virtual environment (venv): an isolated, self-contained copy of Python
+and its installed packages, separate from your main system Python.
+Created with `py -X.X -m venv env_name`. Lets you install conflicting
+package versions for different projects/scripts without one breaking
+the other. Activated with env_name\Scripts\activate (Windows).
+
+Dependency version pinning: explicitly specifying a package's version
+(e.g. tensorflow==2.10.0 or "numpy<2.0") instead of letting pip install
+the latest by default. Necessary when an older library was compiled
+against an older version of a dependency's internal API and breaks
+against newer versions of that same dependency.
+
+Binary incompatibility: when two pieces of compiled code expect
+different internal data layouts or APIs from each other, even though
+they're nominally "compatible" by version number. Not a normal code
+bug -- a structural mismatch at the compiled level, not fixable by
+editing your own Python script.
+
 ## Financial Forecasting Terms
 
 **Return:** the percentage change in price from one day to the next, (today's price - yesterday's price) / yesterday's price. Used instead of raw price because returns are stationary and raw price isn't.
@@ -217,6 +235,34 @@ no single feature dominated. Consistent with EMH.
 3. Consistent with Makridakis (2018): complexity does not automatically
    help on noisy financial time-series data.
 
+   **Sliding window / sequence creation:**
+converting a flat time series intooverlapping windows of fixed length, where each window becomes one
+training example. Used exclusively by LSTM in this project -- every
+other model uses single-day feature vectors instead.
+
+**return_sequences (LSTM parameter):** controls whether an LSTM layer
+outputs its full sequence of hidden states (one per timestep) or just
+the final hidden state. True is needed when stacking another sequence-
+processing layer on top. False is used right before a Dense layer that
+needs one summary vector, not a sequence.
+
+**LSTM parameter count:**
+scales with 4x the gates (forget, input, output,candidate state) multiplied by the relationship between input size and
+hidden units. A 64-unit LSTM layer with 9 input features has 18,944
+parameters, while Logistic Regression with the same 9 features has
+just 10 (9 weights + 1 intercept). LSTM's complexity comes from this
+gate structure, not just "more layers."
+
+**restore_best_weights:**
+an EarlyStopping setting that rewinds the model to its best-performing epoch (lowest validation loss) rather than
+keeping whatever the model looked like at the moment training stopped.
+
+**Complexity-performance tie:**
+when a simple model and a far more complexmodel converge on the same accuracy, it suggests the exploitable signal
+in the data is small enough that added model capacity has nothing
+extra to find -- both models are converging on the same weak signal,
+not failing independently.
+
 ## Math / Statistics
 
 **p-value (for the ADF test):** A number from a statistical test indicating how likely a result could be due to random chance. Below 0.05 = strong evidence against "this is just chance" (here: strong evidence the series IS stationary).
@@ -298,6 +344,13 @@ high uncertainty, narrow spread means low uncertainty.
 Setting a fixed seed before Monte Carlo simulation makes results
 reproducible. Anyone who runs the same code gets the same 1000 random
 draws. Without it, results would differ slightly every run.
+
+**Cross-model regime fragility:**
+when structurally different models (ARIMA, Logistic Regression, LSTM) all show their weakest performance
+during the same real-world time period, the weakness is likely a
+property of the market during that period, not a flaw specific to any
+one model's architecture. A stronger finding than any single model's
+fold-by-fold variance alone.
 
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.
