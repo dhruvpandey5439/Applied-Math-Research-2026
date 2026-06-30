@@ -425,3 +425,52 @@ This directly reproduces the Fischer & Krauss (2018) finding that
 more model complexity does not reliably improve financial forecasting.
 Fold 2 essentially collapsed to baseline (50.19%) -- regime-dependence,
 same pattern seen in ARIMA and Logistic Regression.
+
+### (2026-06-30) - Part 13 GRU (Gated Recurrent Unit)
+
+**What I did:**
+Built a 2-layer GRU (64 units → 32 units → Dense sigmoid
+output) with Dropout(0.2) for regularization. Architecture mirrors
+Part 12 LSTM exactly — only GRU layers substituted for LSTM layers —
+to isolate the effect of architecture specifically.
+Lookback window: 20 days. 3-fold walk-forward validation.
+EarlyStopping(patience=15, restore_best_weights=True).
+Total trainable parameters: 23,841 (vs LSTM's 31,393 — 24% fewer).
+
+**Results (mean across 3 folds):**
+
+  Fold 1: 16 epochs, Accuracy=55.12%, F1=0.7083
+  Fold 2: 20 epochs, Accuracy=51.83%, F1=0.6735
+  Fold 3: 37 epochs, Accuracy=57.02%, F1=0.7079
+  Mean Direction Accuracy: 54.66%
+  Mean F1 Score:           0.6966
+  vs Naive Baseline:       +0.73pp
+  vs LSTM (Part 12):       +0.26pp
+  Mean Epochs Run:         24.3
+
+**What I learned:**
+GRU marginally outperformed LSTM (54.66% vs 54.40%, +0.26pp) despite
+having 24% fewer parameters. Both models landed within 1pp of each
+other and within 1pp of Logistic Regression (54.40%). This is the
+central finding of the deep learning phase: three structurally
+different models — a 9-coefficient linear classifier, a 31,393-
+parameter LSTM, and a 23,841-parameter GRU — all converge on
+essentially the same accuracy (~54-55%). The performance ceiling
+is in the DATA, not the architecture. The signal in daily S&P 500
+direction is too weak for any sequential deep learning model to
+exploit beyond what a simple linear model already captures.
+
+Fold 2 again collapsed toward baseline (51.83%) — the same
+regime-dependence pattern seen across ARIMA, Logistic Regression,
+and LSTM. All three deep learning folds map to the same time
+periods as Part 12, confirming this is a market property during
+that period, not a model flaw.
+
+GRU trained slightly faster than LSTM (24.3 mean epochs vs 22.0)
+and converged more smoothly — visible in the training loss curve.
+This is consistent with GRU's simpler gate structure requiring
+fewer updates to reach a stable solution.
+
+**Problems:** 
+None. Ran in tf_env (Python 3.10, tensorflow==2.10.0,
+numpy<2.0) — same environment as Part 12, no new setup required.

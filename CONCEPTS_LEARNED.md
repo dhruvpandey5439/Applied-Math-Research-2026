@@ -263,6 +263,15 @@ in the data is small enough that added model capacity has nothing
 extra to find -- both models are converging on the same weak signal,
 not failing independently.
 
+**GRU (Gated Recurrent Unit):** 
+a simplified recurrent neural network introduced by Cho et al. (2014) as a more computationally efficient alternative to LSTM. Has two gates instead of LSTM's three: a reset gate (decides how much past to forget) and an update gate (decides how much past to carry forward). Fewer parameters than LSTM — 23,841 vs 31,393 in this project — but comparable performance on most sequential tasks. 
+
+**Architecture-controlled comparison:** 
+when comparing two models, keeping all hyperparameters identical (units, dropout, lookback, epochs, batch size) except the one being tested. Used in Part 13 to isolate GRU vs LSTM specifically — any performance difference can be attributed to the gate structure, not other choices.
+
+**Data ceiling vs architecture ceiling:** 
+when multiple structurally different deep learning models (LSTM, GRU) converge on the same accuracy, the limiting factor is the signal available in the data, not the model's capacity to learn. In this project: Logistic Regression (9 coefficients), LSTM (31,393 parameters), and GRU (23,841 parameters) all landed within 0.26pp of each other, confirming the ceiling is in daily S&P 500 returns, not in model architecture.
+
 ## Math / Statistics
 
 **p-value (for the ADF test):** A number from a statistical test indicating how likely a result could be due to random chance. Below 0.05 = strong evidence against "this is just chance" (here: strong evidence the series IS stationary).
@@ -351,6 +360,9 @@ during the same real-world time period, the weakness is likely a
 property of the market during that period, not a flaw specific to any
 one model's architecture. A stronger finding than any single model's
 fold-by-fold variance alone.
+
+**Parameter efficiency:** 
+the relationship between a model's parameter count and its predictive performance. GRU achieved +0.26pp over LSTM with 24% fewer parameters — meaning it is more parameter-efficient on this dataset. A more parameter-efficient model is generally preferable when performance is equivalent, since it trains faster, is less prone to overfitting, and is easier to interpret.
 
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.
