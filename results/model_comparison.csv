@@ -1,0 +1,11 @@
+model,accuracy,f1_score,test_start,test_end,notes,rmse,mae
+Naive Baseline: Always Up,0.5393,0.7007,2021-02-19,2026-05-28,Predicts up every day. Sets the accuracy floor (~53.8%).,,
+Naive Baseline: Persistence,0.4977,0.534,2021-02-19,2026-05-28,Predicts tomorrow = today's direction. Tests simple momentum.,,
+"GARCH(1,1)",0.4923,0.5038,2013-04-09,2026-05-28,"Volatility model. Direction predicted via vol threshold rule (high vol → down, low vol → up). RMSE/MAE are on % volatility, not return levels.",0.360132,0.266664
+GBM + Monte Carlo,0.521,0.5852,2013-04-09,2026-05-28,Mathematical finance tradition. GBM simulates 1000 price paths per day using calibrated mu and sigma. Median path used for direction forecast. No pattern learning -- pure stochastic simulation.,0.01041,0.007058
+Logistic Regression,0.544,0.7004,2013-04-09,2026-05-28,"C=0.1, StandardScaler, features: ['return_lag_1', 'return_lag_2', 'return_lag_3', 'return_lag_5', 'return_ma_5', 'return_ma_10', 'volatility_5', 'volatility_10', 'volatility_20']. Simple ML classification baseline.",,
+Ridge Regression,0.5077,0.5754,2013-04-09,2026-05-28,"alpha=1.0, StandardScaler, direction from sign of predicted return. Simple ML regression baseline.",0.010454,0.007078
+Random Forest,0.5359,0.6879,2013-04-09,2026-05-28,"n_estimators=200, max_depth=4, min_samples_leaf=20. No scaling needed for tree models.",,
+XGBoost,0.5192,0.6256,2013-04-09,2026-05-28,"n_estimators=200, max_depth=3, lr=0.05, subsample=0.8. Gradient boosting sequential ensemble.",,
+LSTM,0.544,0.6928,walk-forward (3 folds),walk-forward (3 folds),Deep learning. 2-layer LSTM (64→32 units). Lookback=20 days. Dropout=0.2. EarlyStopping patience=15. Mean epochs: 22.0. vs naive baseline: +0.47pp.,,
+GRU,0.5466,0.6966,walk-forward (3 folds),walk-forward (3 folds),Deep learning. 2-layer GRU (64→32 units). Lookback=20 days. Dropout=0.2. EarlyStopping patience=15. Architecture mirrors Part 12 LSTM exactly for direct comparison. Mean epochs: 24.3. vs naive baseline: +0.73pp. vs LSTM: +0.26pp.,,
