@@ -272,6 +272,15 @@ when comparing two models, keeping all hyperparameters identical (units, dropout
 **Data ceiling vs architecture ceiling:** 
 when multiple structurally different deep learning models (LSTM, GRU) converge on the same accuracy, the limiting factor is the signal available in the data, not the model's capacity to learn. In this project: Logistic Regression (9 coefficients), LSTM (31,393 parameters), and GRU (23,841 parameters) all landed within 0.26pp of each other, confirming the ceiling is in daily S&P 500 returns, not in model architecture.
 
+**Cross-asset generalizability:** 
+the property of a finding holding across multiple different asset classes, geographies, and volatility regimes. A result demonstrated across S&P 500, NVDA, GLD, and EWJ is far stronger than one on a single asset because it rules out the possibility that findings are specific to one market's characteristics.
+
+**Asset-specific naive baseline:** 
+each asset has its own always-up accuracy determined by its specific long-run upward drift. S&P 500: 53.93%, NVDA: 54.24%, GLD: 54.35%, EWJ: 52.73%. Models must be compared against their own asset's floor since each asset has different drift characteristics.
+
+**Performance ceiling across assets:** 
+when multiple models from different traditions all converge near but below the naive baseline across multiple assets, it confirms the ceiling is a property of financial markets in general — not of any specific index, asset class, or time period.
+
 ## Math / Statistics
 
 **p-value (for the ADF test):** A number from a statistical test indicating how likely a result could be due to random chance. Below 0.05 = strong evidence against "this is just chance" (here: strong evidence the series IS stationary).
@@ -363,6 +372,15 @@ fold-by-fold variance alone.
 
 **Parameter efficiency:** 
 the relationship between a model's parameter count and its predictive performance. GRU achieved +0.26pp over LSTM with 24% fewer parameters — meaning it is more parameter-efficient on this dataset. A more parameter-efficient model is generally preferable when performance is equivalent, since it trains faster, is less prone to overfitting, and is easier to interpret.
+
+**Market efficiency by asset class:** 
+different assets show different levels of directional predictability reflected in how close models get to their naive baseline. EWJ's lower naive baseline and consistently worse model performance suggests international markets may be more informationally efficient or have weaker drift than US assets in this sample period.
+
+**Drift vs direction:** 
+NVDA is well-known for strong upward momentum especially 2020-2026, yet no model captured this in direction accuracy. This highlights the distinction between magnitude predictability and direction predictability. Financial forecasting models predict direction — the harder of the two problems.
+
+**Replication across assets:** 
+when a finding from a primary analysis is tested on independent datasets and holds consistently, it transitions from a single result to a generalized finding. This is the scientific standard for robustness in empirical financial research.
 
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.

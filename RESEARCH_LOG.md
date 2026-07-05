@@ -474,3 +474,95 @@ fewer updates to reach a stable solution.
 **Problems:** 
 None. Ran in tf_env (Python 3.10, tensorflow==2.10.0,
 numpy<2.0) — same environment as Part 12, no new setup required.
+
+### (2026-07-01 - 2026-07-03) Part 14: Multi-Asset Expansion
+**What I did:**
+Ran the full pipeline on 3 additional assets beyond S&P 500:
+  NVDA (NVIDIA Corporation) — high-volatility individual tech stock
+  GLD (SPDR Gold Shares ETF) — commodity
+  EWJ (iShares MSCI Japan ETF) — international index (Nikkei 225)
+
+**Models run on each asset:**
+  1. Naive Baseline (Always Up)
+  2. GBM + Monte Carlo (mathematical tradition)
+  3. Logistic Regression (simple ML)
+  4. Random Forest (mid-complexity ML)
+  5. LSTM (deep learning)
+  6. GRU (deep learning comparison)
+
+Note: ARIMA excluded from multi-asset expansion due to statsmodels
+version conflict in tf_env. Its underperformance already established
+on S&P 500 (-3.20pp vs naive baseline). Paper will state this explicitly.
+
+Results (mean accuracy across 3 walk-forward folds per asset):
+
+NVDA:
+  Naive Baseline:      54.24% — asset floor
+  GBM + Monte Carlo:   50.84% — -3.40pp vs floor
+  Logistic Regression: 53.48% — -0.76pp vs floor
+  Random Forest:       53.61% — -0.63pp vs floor
+  LSTM:                53.14% — -1.10pp vs floor
+  GRU:                 52.80% — -1.44pp vs floor
+
+GLD:
+  Naive Baseline:      54.35% — asset floor
+  GBM + Monte Carlo:   52.45% — -1.90pp vs floor
+  Logistic Regression: 54.04% — -0.31pp vs floor
+  Random Forest:       52.14% — -2.21pp vs floor
+  LSTM:                54.14% — -0.21pp vs floor
+  GRU:                 54.19% — -0.16pp vs floor
+
+EWJ:
+  Naive Baseline:      52.73% — asset floor
+  GBM + Monte Carlo:   48.03% — -4.70pp vs floor
+  Logistic Regression: 50.59% — -2.14pp vs floor
+  Random Forest:       49.58% — -3.15pp vs floor
+  LSTM:                53.27% — +0.54pp vs floor
+  GRU:                 52.47% — -0.26pp vs floor
+
+**Saved to:**
+  results/NVDA/NVDA_model_comparison.csv
+  results/GLD/GLD_model_comparison.csv
+  results/EWJ/EWJ_model_comparison.csv
+  results/cross_asset_summary.csv
+  figures/NVDA/, figures/GLD/, figures/EWJ/
+  figures/part14_cross_asset_comparison.png
+
+**What I learned:**
+Across all three assets and all six models, not a single model
+consistently beat the naive baseline. This directly replicates and
+strengthens the S&P 500 finding. Five key observations:
+
+1. GBM + Monte Carlo was the worst performer on every single asset
+   (50.84% NVDA, 52.45% GLD, 48.03% EWJ). The mathematical tradition
+   model performed worst across the board — consistent with EMH since
+   GBM assumes returns are random by design.
+
+2. LSTM was the most consistent deep learning model — coming closest
+   to or slightly above the naive baseline on GLD and EWJ. GRU
+   followed a nearly identical pattern confirming the deep learning
+   architecture ceiling finding from Parts 12 and 13.
+
+3. EWJ was the hardest asset to predict across all models. Even the
+   naive baseline only reached 52.73% — lower than S&P 500 (53.93%),
+   NVDA (54.24%), and GLD (54.35%). International markets appear
+   more informationally efficient or have weaker drift than US assets
+   in this sample period.
+
+4. NVDA did not show exploitable directional patterns despite its
+   well-known momentum behavior during 2020-2026 AI boom. The signal
+   exists in magnitude (large returns when it moves) not direction
+   (which specific days it goes up vs down) — highlighting the
+   distinction between magnitude and direction predictability.
+
+5. Cross-asset generalizability confirmed: the finding that model
+   complexity does not improve directional forecasting accuracy holds
+   across a US index (S&P 500), individual tech stock (NVDA),
+   commodity (GLD), and international index (EWJ). The result is
+   not specific to one market or time period.
+
+**Problems:** 
+statsmodels conflict in tf_env prevented ARIMA from running
+in multi-asset script. Fixed by removing ARIMA from Part 14 and noting
+this as a limitation. All other models ran cleanly in tf_env after
+installing yfinance and downgrading numpy to <2.0.
