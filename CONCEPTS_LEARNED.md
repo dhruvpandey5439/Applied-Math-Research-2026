@@ -382,6 +382,41 @@ NVDA is well-known for strong upward momentum especially 2020-2026, yet no model
 **Replication across assets:** 
 when a finding from a primary analysis is tested on independent datasets and holds consistently, it transitions from a single result to a generalized finding. This is the scientific standard for robustness in empirical financial research.
 
+**Diebold-Mariano (DM) test:** 
+a statistical test for comparing forecast accuracy between two models. Uses the loss differential
+d(t) = loss1(t) - loss2(t) across all prediction periods.
+DM statistic = mean(d) / sqrt(variance(d)/n).
+p < 0.05: one model is significantly better.
+p > 0.05: difference is statistically indistinguishable from noise.
+Gold standard for forecast comparison in financial econometrics.
+
+**Binomial significance test:** 
+tests whether a model's accuracy is significantly above a baseline using the binomial distribution.
+Only requires three numbers: number correct, total predictions,
+and baseline probability. One-sided test: H0 = model accuracy
+<= baseline. p < 0.05 = model significantly beats baseline.
+All models in this project failed this test across all assets.
+
+**Statistical significance hierarchy:** 
+the ordered relationship between models once significance testing is applied. In this project:
+Naive ≈ Logistic ≈ LSTM > ARIMA. The ≈ means no statistically
+significant difference. The > means a statistically significant
+difference exists. This hierarchy is the definitive answer to
+the research question.
+
+**Type II error (false negative):** 
+failing to detect a real difference when one exists. With small sample sizes, real differences can appear
+non-significant. With 2,373 predictions, a difference of ~0.47pp is
+too small to detect reliably — the test correctly reports not
+significant because the evidence is insufficient, not because the
+difference is definitely zero.
+
+**Newey-West variance estimator:** 
+a variance estimator used in the DM test that accounts for autocorrelation in the loss differential
+series. Required because forecast errors in financial time series
+are often correlated across time — using standard variance would
+underestimate uncertainty and produce false significant results.
+
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.
 

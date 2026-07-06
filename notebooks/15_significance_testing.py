@@ -378,7 +378,7 @@ for label, m1, m2 in dm_comparisons:
     true1   = true1[-min_len:]
 
     dm_stat, p_val, winner = diebold_mariano(preds1, preds2, true1)
-    )
+    
 
     significant = "YES ✓" if p_val < 0.05 else "NO"
 
