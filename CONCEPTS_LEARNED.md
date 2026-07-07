@@ -281,6 +281,14 @@ each asset has its own always-up accuracy determined by its specific long-run up
 **Performance ceiling across assets:** 
 when multiple models from different traditions all converge near but below the naive baseline across multiple assets, it confirms the ceiling is a property of financial markets in general — not of any specific index, asset class, or time period.
 
+**Regime-dependent deep learning:** 
+LSTM's post-2020 improvement (+0.69pp vs floor) compared to its pre-2020 underperformance
+(-0.95pp) suggests LSTM may capture nonlinear patterns that
+emerge in high-volatility regime-shifting markets. However
+without statistical significance this remains suggestive rather
+than confirmed. A finding worth discussing honestly in the
+Discussion section.
+
 ## Math / Statistics
 
 **p-value (for the ADF test):** A number from a statistical test indicating how likely a result could be due to random chance. Below 0.05 = strong evidence against "this is just chance" (here: strong evidence the series IS stationary).
@@ -416,6 +424,27 @@ a variance estimator used in the DM test that accounts for autocorrelation in th
 series. Required because forecast errors in financial time series
 are often correlated across time — using standard variance would
 underestimate uncertainty and produce false significant results.
+
+
+**Regime analysis:**
+splitting a time series into distinct market periods and testing whether findings hold across each period
+separately. A result that is consistent across multiple regimes
+is more robust than one demonstrated on a single time period.
+Standard split in financial research: pre-2020 vs post-2020
+due to COVID-19 as a structural break point.
+
+**Structural break:**
+a point in time where the statistical properties of a time series change significantly. COVID-19 (early 2020) is
+a well-established structural break in financial markets — volatility
+spiked, correlations changed, and market behavior shifted. Testing
+models across this break confirms whether findings are general
+or period-specific.
+
+**Regime-stable performance:**
+when a model's relative performance vs the baseline is consistent across both regimes. Logistic and
+RF both underperformed by similar margins pre and post-2020 —
+their weakness is structural, not caused by any specific market
+period.
 
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.

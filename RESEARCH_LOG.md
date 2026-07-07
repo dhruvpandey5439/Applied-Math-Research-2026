@@ -624,3 +624,62 @@ due to lookback window) and other model predictions. Fixed by
 aligning all arrays to minimum length using preds[-min_len:] before
 running DM test. Also fixed unmatched parenthesis syntax error from
 earlier editing.
+
+### (2026-07-07) Part 16: Regime Analysis
+
+What I did: Split S&P 500 data into two market regimes and ran
+4 models (Naive Baseline, Logistic Regression, Random Forest, LSTM)
+on each regime independently using 3-fold walk-forward validation.
+
+Regimes:
+  Pre-2020:  2000-02-02 to 2019-12-31 — stable bull market
+  Post-2020: 2020-01-01 to 2026-05-28 — COVID crash, AI boom,
+             rate hikes, high volatility
+
+Results:
+
+PRE-2020 (2000-2019):
+  Naive Baseline:      54.59% — floor
+  Logistic Regression: 53.69% — BELOW floor by 0.90pp
+  Random Forest:       52.79% — BELOW floor by 1.80pp
+  LSTM:                53.64% — BELOW floor by 0.95pp
+
+POST-2020 (2020-2026):
+  Naive Baseline:      54.62% — floor
+  Logistic Regression: 53.58% — BELOW floor by 1.04pp
+  Random Forest:       52.54% — BELOW floor by 2.08pp
+  LSTM:                55.31% — BEAT floor by 0.69pp ← only win
+
+Saved to:
+  results/regime_analysis.csv
+  figures/part16_regime_analysis.png
+
+What I learned:
+1. The naive baseline is remarkably stable across both regimes
+   (54.59% pre-2020 vs 54.62% post-2020). The S&P 500's upward
+   drift has been consistent across very different market conditions.
+
+2. LSTM is the only model to beat the naive baseline in either
+   regime — post-2020 only (+0.69pp). This is a nuanced finding:
+   LSTM may capture something in high-volatility regime-shifting
+   markets that simpler linear models cannot. However given the
+   DM test result from Part 15 (LSTM vs Naive p=0.323), this edge
+   is not statistically significant — it remains a suggestive
+   pattern, not a confirmed finding.
+
+3. Logistic and RF both underperformed in both regimes by similar
+   margins. Their performance is regime-stable but consistently
+   below the floor — the underperformance is not caused by one
+   specific market period.
+
+4. Post-2020 fold 1 shows dramatic variance for LSTM (50.47% →
+   57.73% → 57.73%). This is the COVID crash + recovery period —
+   even LSTM struggles in the most chaotic market environment
+   but recovers as the regime stabilizes.
+
+5. The overall finding holds across both regimes: no model from
+   any tradition consistently and significantly beats the naive
+   baseline regardless of market conditions. The result is not
+   regime-specific.
+
+Problems: None. Ran cleanly in tf_env.
