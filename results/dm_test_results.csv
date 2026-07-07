@@ -1,0 +1,7 @@
+comparison,model_1,model_2,dm_statistic,p_value,significant,better_model
+Logistic vs Naive,logistic,naive,0.6624,0.5077,False,Naive
+LSTM vs Naive,lstm,naive,0.9883,0.323,False,Naive
+ARIMA vs Naive,arima,naive,2.5815,0.0098,True,Naive
+LSTM vs Logistic,lstm,logistic,0.3621,0.7173,False,Logistic
+LSTM vs ARIMA,lstm,arima,-2.201,0.0277,True,Lstm
+Logistic vs ARIMA,logistic,arima,-2.4177,0.0156,True,Logistic
