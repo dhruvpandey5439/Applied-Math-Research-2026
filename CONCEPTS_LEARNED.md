@@ -289,6 +289,18 @@ without statistical significance this remains suggestive rather
 than confirmed. A finding worth discussing honestly in the
 Discussion section.
 
+**Long/cash strategy:** 
+a simple trading rule that goes long (buys) when the model predicts up and sits in cash when it
+predicts down. No short selling. No leverage. No transaction
+costs. Best-case scenario for any direction-predicting model
+since real trading adds costs that further reduce returns.
+
+**Sanity check:** 
+a secondary evaluation that confirms findings using a completely different framework. The Sharpe ratio sanity
+check confirms the accuracy findings from a financial theory
+perspective — models that can't beat accuracy baselines also
+can't beat risk-adjusted return baselines.
+
 ## Math / Statistics
 
 **p-value (for the ADF test):** A number from a statistical test indicating how likely a result could be due to random chance. Below 0.05 = strong evidence against "this is just chance" (here: strong evidence the series IS stationary).
@@ -445,6 +457,28 @@ when a model's relative performance vs the baseline is consistent across both re
 RF both underperformed by similar margins pre and post-2020 —
 their weakness is structural, not caused by any specific market
 period.
+
+**Sharpe ratio:**
+measures risk-adjusted return. Formula:
+  Sharpe = (mean daily return / std daily return) * sqrt(252)
+  sqrt(252) annualizes the ratio (252 trading days per year).
+  Higher Sharpe = better return per unit of risk taken.
+  Sharpe > 1.0 generally considered good.
+  Sharpe > 2.0 considered excellent.
+  Buy & Hold S&P 500 historically produces Sharpe ~0.5-0.8.
+
+**Risk-adjusted return:** 
+return relative to the risk taken to achieve it. A strategy that earns 10% with low volatility is
+better than one that earns 12% with high volatility. Sharpe
+captures this tradeoff. Pure return comparisons without risk
+adjustment are misleading in trading contexts.
+
+**Missing the best days effect:** 
+when a trading strategy sits in cash on some days, it risks missing large positive return days
+that disproportionately drive long-run returns. ARIMA's total
+return of 115.69% vs buy-and-hold's 235.69% demonstrates this —
+by incorrectly predicting down on many up days, it misses
+compounding gains that are never recovered.
 
 ### Classical Models
 Models that existed before machine learning, built on mathematical and statistical theory rather than learning from data patterns. These form the "classical" side of the three-way comparison in this project.

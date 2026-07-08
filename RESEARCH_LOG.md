@@ -626,7 +626,6 @@ running DM test. Also fixed unmatched parenthesis syntax error from
 earlier editing.
 
 ### (2026-07-07) Part 16: Regime Analysis
-
 What I did: Split S&P 500 data into two market regimes and ran
 4 models (Naive Baseline, Logistic Regression, Random Forest, LSTM)
 on each regime independently using 3-fold walk-forward validation.
@@ -683,3 +682,74 @@ What I learned:
    regime-specific.
 
 Problems: None. Ran cleanly in tf_env.
+
+### (2026-07-08) Part 17: Sharpe Ratio Sanity Check
+What I did: Simulated a simple long/cash trading strategy based on
+each model's saved prediction arrays from Part 15. Computed Sharpe
+ratio and total return for each strategy vs a buy-and-hold benchmark.
+Strategy: if model predicts UP → go long (earn actual return).
+          if model predicts DOWN → go to cash (earn 0%).
+No transaction costs assumed — best-case scenario for models.
+Prediction period: 2016-12-16 to 2026-05-28 (2,373 trading days).
+
+Results:
+  Buy & Hold (benchmark):
+    Sharpe Ratio:  0.7918
+    Total Return:  235.69%
+
+  Naive Strategy:
+    Accuracy:      55.08%
+    Sharpe Ratio:  0.7918 — IDENTICAL to Buy & Hold
+    Total Return:  235.69%
+    vs Buy & Hold: +0.0000
+
+  ARIMA Strategy:
+    Accuracy:      51.83%
+    Sharpe Ratio:  0.6280
+    Total Return:  115.69%
+    vs Buy & Hold: -0.1638 Sharpe
+
+  Logistic Strategy:
+    Accuracy:      54.87%
+    Sharpe Ratio:  0.7210
+    Total Return:  172.97%
+    vs Buy & Hold: -0.0707 Sharpe
+
+  LSTM Strategy:
+    Accuracy:      54.70%
+    Sharpe Ratio:  0.7016
+    Total Return:  175.93%
+    vs Buy & Hold: -0.0902 Sharpe
+
+Saved to:
+  results/sharpe_ratio_results.csv
+  figures/part17_sharpe_ratio.png
+
+What I learned:
+1. Naive = Buy & Hold exactly (Sharpe 0.7918 = 0.7918). Always
+   predicting up is mathematically identical to holding the index.
+   This confirms the baseline is correctly implemented and that
+   upward drift is the only consistent signal in the data.
+
+2. No model beats Buy & Hold on risk-adjusted returns. Every model
+   has a lower Sharpe than simply holding the index — the accuracy
+   findings translate directly into trading performance findings.
+
+3. ARIMA destroys value — total return of 115.69% vs 235.69% for
+   buy and hold. By sitting in cash on predicted down days, ARIMA
+   misses enough large up days to cut returns by more than half.
+   This is the "missing the best days" effect — common in trading
+   strategies that try to time the market.
+
+4. The practical conclusion is definitive: not only do models fail
+   to significantly beat the naive baseline in direction accuracy
+   (Part 15), they also fail to generate better risk-adjusted
+   returns than simply holding the index. Trading on any of these
+   models' signals would have made an investor worse off.
+
+5. This confirms the research finding from a completely different
+   angle — financial theory (Sharpe), not just statistical accuracy.
+   The conclusion is robust across multiple evaluation frameworks.
+
+Problems: None. Script ran in under 1 minute using saved prediction
+arrays from Part 15. No model re-running required.
