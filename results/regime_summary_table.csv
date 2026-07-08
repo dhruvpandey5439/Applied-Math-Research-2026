@@ -1,0 +1,5 @@
+Model,Pre-2020,Post-2020,Difference,Consistent
+Naive,54.59,54.62,0.03,YES
+Logistic,53.69,53.58,-0.11,YES
+RF,52.79,52.54,-0.25,YES
+LSTM,53.64,55.31,1.67,PARTIAL

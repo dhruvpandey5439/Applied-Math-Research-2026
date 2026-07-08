@@ -1,0 +1,12 @@
+model,tradition,complexity,accuracy,f1,vs_baseline,dm_p_vs_naive,dm_significant,sharpe,total_return,notes
+Naive: Always Up,Baseline,1,53.93,0.7007,0.0,,,0.7918,235.69,The accuracy floor. Always predicts up.
+Naive: Persistence,Baseline,1,49.77,0.534,-4.16,,,,,Predicts tomorrow = today. Below random chance.
+"ARIMA(1,0,1)",Classical Statistical,2,50.73,0.4236,-3.2,0.0098,True,0.628,115.69,Significantly worse than naive (p=0.0098).
+"GARCH(1,1)",Classical Statistical,2,49.23,,-4.7,,,,,Volatility model. Direction accuracy secondary.
+GBM + Monte Carlo,Mathematical Finance,3,52.1,,-1.83,,,,,Pure simulation. No pattern learning.
+Logistic Regression,Machine Learning,4,54.4,0.7004,0.47,0.5077,False,0.721,172.97,First model to beat floor. Not significant (p=0.508).
+Ridge Regression,Machine Learning,4,50.77,0.5754,-3.16,,,,,Regression target. Direction via sign of predicted return.
+Random Forest,Machine Learning,5,53.59,0.6879,-0.34,,,,,"n_estimators=200, max_depth=4. Below naive by 0.34pp."
+XGBoost,Machine Learning,5,51.92,0.6256,-2.01,,,,,"n_estimators=200, max_depth=3, lr=0.05. Below naive by 2.01pp."
+LSTM,Machine Learning (Deep),6,54.4,0.6928,0.47,0.323,False,0.7016,175.93,Ties Logistic. DM p=0.717 vs Logistic — indistinguishable.
+GRU,Machine Learning (Deep),6,54.66,0.6966,0.73,0.2454,False,,,Marginally above LSTM. Not significant.
