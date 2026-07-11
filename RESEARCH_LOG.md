@@ -800,7 +800,6 @@ Logistic and RF slightly decline post‑2020.
 LSTM improves post‑2020 (+1.67 pp) but still not significant.
 
 What I learned:
-
 Complexity does not guarantee improvement.  
 Logistic Regression (9 coefficients) and LSTM (31 k parameters) achieve statistically identical accuracy. Deep learning does not outperform simple ML.
 
