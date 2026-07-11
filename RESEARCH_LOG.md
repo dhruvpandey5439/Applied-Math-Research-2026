@@ -753,3 +753,70 @@ What I learned:
 
 Problems: None. Script ran in under 1 minute using saved prediction
 arrays from Part 15. No model re-running required.
+
+(2026‑07‑09) Part 18: Final Results Table & Complete Summary
+What I did:  
+Compiled every model’s metrics, significance tests, cross‑asset results, and regime analysis into one master results table. Included accuracy, F1 score, Diebold‑Mariano p‑values, Sharpe ratios, total returns, and baseline comparisons. Generated a four‑panel figure summarizing the entire project:
+
+S&P 500 model accuracy comparison
+
+Cross‑asset heatmap (S&P 500, NVDA, GLD, EWJ)
+
+DM test p‑values
+
+Regime analysis (pre‑2020 vs post‑2020)
+
+All tables saved to results/ and the final figure to figures/part18_complete_results.png.
+
+Results:
+
+S&P 500 Primary Analysis:  
+Naive Baseline – 53.93 % → floor
+ARIMA(1,0,1) – 50.73 % → significantly below floor (p = 0.0098)
+GARCH(1,1) – 49.23 % → volatility model, poor directional performance
+GBM + Monte Carlo – 52.10 % → below floor by 1.83 pp
+Logistic Regression – 54.40 % → above floor by 0.47 pp (not significant, p = 0.5077)
+Random Forest – 53.59 % → below floor by 0.34 pp
+XGBoost – 51.92 % → below floor by 2.01 pp
+LSTM – 54.40 % → ties Logistic (p = 0.323 vs Naive)
+GRU – 54.66 % → highest accuracy (+0.73 pp) but not significant
+
+Cross‑Asset Summary:  
+Accuracy patterns generalize across S&P 500, NVDA, GLD, EWJ (~54 % ceiling).
+No model breaks out of the 52–55 % band.
+Naive baseline remains competitive across all assets.
+
+Significance Testing:  
+ARIMA vs Naive → p = 0.0098 → ARIMA significantly worse
+Logistic vs Naive → p = 0.5077 → no difference
+LSTM vs Naive → p = 0.3230 → no difference
+LSTM vs Logistic → p = 0.7173 → identical
+LSTM vs ARIMA → p = 0.0277 → LSTM better
+Logistic vs ARIMA → p = 0.0156 → Logistic better
+
+Regime Analysis:  
+Naive stable pre‑ and post‑2020.
+Logistic and RF slightly decline post‑2020.
+LSTM improves post‑2020 (+1.67 pp) but still not significant.
+
+What I learned:
+
+Complexity does not guarantee improvement.  
+Logistic Regression (9 coefficients) and LSTM (31 k parameters) achieve statistically identical accuracy. Deep learning does not outperform simple ML.
+
+Naive baseline is extremely strong.  
+Always predicting “up” captures market drift. Naive ≈ Logistic ≈ LSTM in both accuracy and Sharpe ratio.
+
+Classical statistical models fail decisively.  
+ARIMA significantly underperforms and destroys returns. GARCH provides no directional edge.
+
+Sharpe ratio findings reinforce accuracy findings.  
+No model beats buy‑and‑hold on risk‑adjusted returns. Even slightly better accuracy models miss large up days.
+
+Cross‑asset generalization strengthens the conclusion.  
+The ~54 % ceiling appears across equities, commodities, and international indices → structural limitation, not dataset‑specific.
+
+Regime analysis shows partial adaptability but no breakthrough.  
+LSTM improves post‑2020 but still fails to beat naive significantly. Market regime shifts do not unlock predictability.
+
+Final conclusion is robust across frameworks:
