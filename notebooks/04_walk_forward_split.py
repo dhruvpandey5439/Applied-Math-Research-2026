@@ -1,9 +1,9 @@
 import os
 import pandas as pd
 
-# %% --------------------------------------------------------------------
+
 # STEP 1: Load Day 3's feature dataset
-# --------------------------------------------------------------------
+
 script_dir = os.path.dirname(os.path.abspath(__file__))
 csv_path = os.path.join(script_dir, "sp500_features.csv")
 data = pd.read_csv(csv_path, index_col=0, parse_dates=True)
@@ -11,10 +11,10 @@ data = pd.read_csv(csv_path, index_col=0, parse_dates=True)
 print("Loaded data shape:", data.shape)
 print("Date range:", data.index.min(), "to", data.index.max())
 
-# %% --------------------------------------------------------------------
+
 # STEP 2: The WRONG way -- random shuffling (we do this ONLY to show why
 # it's wrong, never actually use train_test_split like this for real)
-# --------------------------------------------------------------------
+
 from sklearn.model_selection import train_test_split
 
 # shuffle=True (the default!) randomly mixes rows before splitting.
@@ -23,14 +23,13 @@ wrong_train, wrong_test = train_test_split(data, test_size=0.2, shuffle=True)
 print("\n=== WRONG approach (randomly shuffled) ===")
 print("Train date range:", wrong_train.index.min(), "to", wrong_train.index.max())
 print("Test date range:", wrong_test.index.min(), "to", wrong_test.index.max())
-# Notice: both ranges span almost the ENTIRE 26 years. That means the
-# "training" set contains rows from 2026, and the "test" set contains rows
+# The "training" set contains rows from 2026, and the "test" set contains rows
 # from 2001. A model trained this way has already "seen" the future
 # relative to many of its own test points -- the evaluation is meaningless.
 
-# %% --------------------------------------------------------------------
+
 # STEP 3: The RIGHT way -- a single chronological split
-# --------------------------------------------------------------------
+
 # Pick a cutoff point. Everything before it = train. Everything after it =
 # test. No shuffling, no mixing -- this respects time order completely,
 # the same principle as shift(1) only ever looking backward.
@@ -46,9 +45,9 @@ print("Train size:", train.shape[0], "rows")
 print("Test size:", test.shape[0], "rows")
 # Now: train is entirely EARLIER than test. No overlap, no future leakage.
 
-# %% --------------------------------------------------------------------
+
 # STEP 4: Walk-forward validation -- a more rigorous version
-# --------------------------------------------------------------------
+
 # A single train/test split gives you exactly ONE number to judge a model
 # by -- risky, because that one test period might happen to be unusually
 # easy or hard (e.g. testing only on 2020's COVID crash would be misleading
@@ -82,9 +81,9 @@ for fold, (train_idx, test_idx) in enumerate(tscv.split(data), start=1):
     # Sanity check: every fold's test data should start the day right after
     # that fold's training data ends.
 
-# %% --------------------------------------------------------------------
+
 # STEP 5: Save the simple chronological split for immediate use
-# --------------------------------------------------------------------
+
 # We'll use TimeSeriesSplit (Step 4) directly inside model training scripts
 # going forward, but saving this simple 80/20 version now gives us a quick
 # train/test pair to sanity-check the very first models with.
