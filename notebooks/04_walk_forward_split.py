@@ -16,8 +16,6 @@ print("Date range:", data.index.min(), "to", data.index.max())
 # it's wrong, never actually use train_test_split like this for real)
 
 from sklearn.model_selection import train_test_split
-
-# shuffle=True (the default!) randomly mixes rows before splitting.
 wrong_train, wrong_test = train_test_split(data, test_size=0.2, shuffle=True)
 
 print("\n=== WRONG approach (randomly shuffled) ===")
