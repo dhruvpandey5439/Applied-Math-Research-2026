@@ -57,7 +57,7 @@ depth, so we keep both.
 - Problems: None.
 
 ### (2026-06-19   -  2026-06-20) Part 6: Naive Baseline Models
-- What I did: Built two naive baseline models evaluated on the test set 
+- What I did: Built two naive baseline models evaluated on the test set. Baseline 1 is Always up and Baseline 2 is Persistance. Baseline 1 is our accuracy floor meaning any model used must beat this baseline to be meaningful.
 (2021-02-19 to 2026-05-28, 1324 rows).
 
 - Results:

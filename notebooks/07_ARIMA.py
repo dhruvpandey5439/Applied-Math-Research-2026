@@ -223,5 +223,4 @@ Saved:
   results/model_comparison.csv (updated with ARIMA row)
   figures/day7_arima_results.png
 """)
-print("Day 7 complete.")
  
