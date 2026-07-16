@@ -111,11 +111,11 @@ GARCH(1,1) means one lag of the shock term and one lag of the variance term. Bol
 
 Why the direction accuracy is low and why that's fine:
 
-GARCH was never designed to predict direction. The 49.23% direction accuracy is the result of a heuristic I imposed on top of the model — it is not what GARCH was built for. The real metric for GARCH is volatility RMSE: 0.36%. That number will be discussed in the paper as the GARCH contribution, not the direction accuracy.
+GARCH was never designed to predict direction. The 49.23% direction accuracy is the result of a heuristic I imposed on top of the model — it is not what GARCH was built for. The real metric for GARCH is volatility RMSE: 0.36%. That number will be discussed in my paper as the GARCH contribution, not the direction accuracy.
 The COVID fold (Fold 3, 2018–2021):
 
 RMSE jumped from ~0.30% in normal folds to 0.50%. This is a known weakness of GARCH — it adapts slowly to sudden regime changes. The COVID crash in March 2020 was a massive, sudden volatility spike that the model had not seen in training. This is worth a sentence in the Discussion section.
-How this fits the research question:
+How GARCH connects to the research question:
 
 GARCH represents the classical statistical tradition alongside ARIMA. Together ARIMA and GARCH establish what the statistical tradition can do before ML models enter. So far both classical statistical models fall below the naive baseline for direction prediction — this is consistent with the Efficient Market Hypothesis and with the literature (Makridakis 2018, Fama 1970).
 
