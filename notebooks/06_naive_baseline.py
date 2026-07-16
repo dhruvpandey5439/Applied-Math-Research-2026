@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
-# =============================================================================
+
 # STEP 1: Load the feature dataset from Phase 1
-# =============================================================================
+
 # This is the file we saved at the end of Day 3 (sp500_features.csv).
 # It has all our engineered features AND our two targets:
 #   - target_direction: 1 if tomorrow is up, 0 if down
@@ -14,9 +14,6 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# sp500_features.csv lives in AppliedMath_Dev/data processed/
-# The script lives in AppliedMath_Dev/notebooks/
-# So we go up one level (..) then into "data processed"
 features_path = os.path.join(script_dir, "..", "data processed", "sp500_features.csv")
 
 data = pd.read_csv(features_path, index_col=0, parse_dates=True)
@@ -30,9 +27,9 @@ assert "target_direction" in data.columns, "Missing target_direction column!"
 assert "target_return" in data.columns, "Missing target_return column!"
 assert "Return" in data.columns, "Missing Return column!"
 
-# =============================================================================
+
 # STEP 2: Chronological 80/20 train/test split (same as Day 4)
-# =============================================================================
+
 split_index = int(len(data) * 0.8)
 train = data.iloc[:split_index]
 test  = data.iloc[split_index:]
@@ -43,9 +40,9 @@ print(f"Test:  {test.index.min().date()} to {test.index.max().date()} ({len(test
 y_true = test["target_direction"]
 plt.style.use("dark_background")
 
-# =============================================================================
+
 # STEP 3: Baseline 1 -- "Always Up"
-# =============================================================================
+
 always_up_predictions = np.ones(len(test), dtype=int)
 
 always_up_accuracy = accuracy_score(y_true, always_up_predictions)
@@ -57,9 +54,8 @@ print(f"F1 Score: {always_up_f1:.4f}")
 print("Confusion matrix (rows=actual, cols=predicted):")
 print(confusion_matrix(y_true, always_up_predictions))
 
-# =============================================================================
 # STEP 4: Baseline 2 -- "Persistence"
-# =============================================================================
+
 today_direction = (test["Return"] > 0).astype(int)
 persistence_predictions = today_direction.values
 
@@ -72,9 +68,9 @@ print(f"F1 Score: {persistence_f1:.4f}")
 print("Confusion matrix:")
 print(confusion_matrix(y_true, persistence_predictions))
 
-# =============================================================================
+
 # STEP 5: Save results to CSV
-# =============================================================================
+
 results_dir = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
 
@@ -102,9 +98,9 @@ results.to_csv(results_path, index=False)
 print(f"\nSaved results to {results_path}")
 print(results.to_string(index=False))
 
-# =============================================================================
+
 # STEP 6: Visualize
-# =============================================================================
+
 fig, axes = plt.subplots(2, 1, figsize=(12, 8))
 
 models_list = ["Always Up", "Persistence"]
@@ -137,4 +133,3 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to {fig_path}")
 plt.style.use("dark_background")
-print("Day 6 complete.")
