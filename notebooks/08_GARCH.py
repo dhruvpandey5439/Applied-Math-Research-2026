@@ -1,11 +1,4 @@
-# =============================================================================
-# PART 8: GARCH(1,1) MODEL
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical AND mathematical
-# methods when forecasting financial time-series data?
-#
+
 # What GARCH does:
 # GARCH models time-varying volatility -- how "jumpy" the market is expected
 # to be tomorrow, based on how jumpy it has been recently. It does NOT predict
@@ -30,7 +23,7 @@
 #      -- High predicted volatility → predict "down" (risk-off signal)
 #      -- Low predicted volatility  → predict "up"  (calm market signal)
 #      This lets us compute direction accuracy for fair comparison.
-# =============================================================================
+
 
 import os
 import warnings
@@ -47,9 +40,9 @@ plt.rcParams["figure.facecolor"] = "#0e0e0e"
 plt.rcParams["axes.facecolor"]   = "#1a1a1a"
 plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
-# =============================================================================
+
 # STEP 1: LOAD DATA
-# =============================================================================
+
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -69,9 +62,9 @@ returns = data["Return"] * 100
 target_direction = data["target_direction"]
 target_return    = data["target_return"]
 
-# =============================================================================
+
 # STEP 2: WALK-FORWARD VALIDATION SETUP
-# =============================================================================
+
 
 n           = len(returns)
 n_splits    = 5
@@ -89,9 +82,9 @@ for i in range(n_splits):
 
 print(f"Walk-forward validation: {len(folds)} folds\n")
 
-# =============================================================================
+
 # STEP 3: GARCH(1,1) WALK-FORWARD LOOP
-# =============================================================================
+
 
 fold_results = []
 
@@ -183,9 +176,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
         "actual_dirs":  actual_dirs,
     })
 
-# =============================================================================
+
 # STEP 4: AGGREGATE RESULTS
-# =============================================================================
+
 
 results_df = pd.DataFrame([{
     "fold":         r["fold"],
@@ -212,9 +205,9 @@ print(f"Mean F1 Score:            {mean_f1:.4f}")
 print(f"vs Naive Baseline:        {(mean_dir_acc - naive_baseline)*100:+.2f} pp")
 print("=" * 60)
 
-# =============================================================================
+
 # STEP 5: SAVE RESULTS TO model_comparison.csv
-# =============================================================================
+
 
 results_dir = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -245,9 +238,9 @@ else:
 combined.to_csv(comparison_path, index=False)
 print(f"\nSaved results to: {comparison_path}")
 
-# =============================================================================
+
 # STEP 6: VISUALIZATIONS
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -315,9 +308,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 7: FINAL SUMMARY
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("RESULTS SUMMARY")
@@ -331,4 +324,3 @@ print(f"vs Naive baseline:       {(mean_dir_acc - naive_baseline)*100:+.2f} pp")
 print(f"Mean vol RMSE:           {mean_vol_rmse:.4f}%")
 print(f"Mean vol MAE:            {mean_vol_mae:.4f}%")
 print("=" * 60)
-print("\nPart 8 complete. Next: Part 9 -- GBM + Monte Carlo")

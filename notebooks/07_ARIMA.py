@@ -10,9 +10,9 @@ from statsmodels.tsa.arima.model import ARIMA
  
 warnings.filterwarnings("ignore")  # ARIMA produces harmless convergence warnings
  
-# =============================================================================
+
 # STEP 1: Load data
-# =============================================================================
+
 script_dir    = os.path.dirname(os.path.abspath(__file__))
 features_path = os.path.join(script_dir, "..", "data processed", "sp500_features.csv")
  
@@ -26,9 +26,9 @@ print("Date range:", data.index.min().date(), "to", data.index.max().date())
 returns = data["Return"]
 plt.style.use("dark_background")
 
-# =============================================================================
+
 # STEP 2: Choose ARIMA order (p, d, q)
-# =============================================================================
+
 # p = number of AR lags (how many past returns to use)
 # d = differencing order (0 since returns are already stationary)
 # q = number of MA lags (how many past errors to use)
@@ -37,10 +37,7 @@ plt.style.use("dark_background")
 # This suggests small p and q values. We use ARIMA(1,0,1) as a standard
 # starting point -- one AR lag and one MA lag. This is the most common
 # specification in the financial forecasting literature for daily returns.
-#
-# In a more advanced study, you'd use AIC/BIC criteria to select the
-# optimal order automatically. For this project, ARIMA(1,0,1) is the
-# appropriate benchmark choice, consistent with the literature.
+
  
 p, d, q = 1, 0, 1
 print(f"\nARIMA order: ({p}, {d}, {q})")
@@ -48,12 +45,12 @@ print("p=1: use yesterday's return as AR input")
 print("d=0: no differencing needed (returns already stationary)")
 print("q=1: use yesterday's forecast error as MA input")
  
-# =============================================================================
+
 # STEP 3: Walk-forward validation with 5 folds
-# =============================================================================
+
 # For each fold: fit ARIMA on training data, predict ONE step ahead on
 # each day of the test period (re-fitting each time to avoid lookahead).
-# This is computationally slower than a single fit but far more honest.
+# This is computationally slower than a single fit but far more accuraate.
 #
 # Note: full re-fitting on every single test day would take hours for
 # 26 years of data. Instead we fit once per fold on the training window
@@ -109,9 +106,9 @@ for fold, (train_idx, test_idx) in enumerate(tscv.split(data), start=1):
     print(f"  RMSE: {rmse:.6f} | MAE: {mae:.6f}")
     print(f"  Direction Accuracy: {acc*100:.2f}% | F1: {f1:.4f}")
  
-# =============================================================================
+
 # STEP 4: Summarize across folds
-# =============================================================================
+
 results_df = pd.DataFrame(fold_results)
  
 mean_rmse     = results_df["rmse"].mean()
@@ -127,9 +124,9 @@ print(f"Mean F1 Score:          {mean_f1:.4f}")
 print(f"\nNaive baseline (Always Up): 53.93% accuracy")
 print(f"ARIMA vs baseline:          {(mean_accuracy - 0.5393)*100:+.2f} percentage points")
  
-# =============================================================================
+
 # STEP 5: Append ARIMA results to the model comparison CSV
-# =============================================================================
+
 results_dir  = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
 results_path = os.path.join(results_dir, "model_comparison.csv")
@@ -152,9 +149,9 @@ updated.to_csv(results_path, index=False)
 print(f"\nUpdated model comparison table saved to {results_path}")
 print(updated.to_string(index=False))
  
-# =============================================================================
+
 # STEP 6: Visualize -- fold-by-fold accuracy + predicted vs actual returns
-# =============================================================================
+
 fig, axes = plt.subplots(2, 1, figsize=(12, 8))
  
 # Top: accuracy per fold vs naive baseline
@@ -192,35 +189,4 @@ fig_path = os.path.join(figures_dir, "day7_arima_results.png")
 plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to {fig_path}")
- 
-# =============================================================================
-# STEP 7: Research log summary
-# =============================================================================
-print("\n" + "="*60)
-print("DAY 7 SUMMARY -- add this to your research log:")
-print("="*60)
-print(f"""
-What I did:
-  Fitted ARIMA({p},{d},{q}) on S&P 500 daily returns using 5-fold
-  walk-forward validation. Evaluated on both regression metrics
-  (RMSE, MAE) and direction metrics (accuracy, F1).
- 
-Results (mean across 5 folds):
-  RMSE:               {mean_rmse:.6f}
-  MAE:                {mean_mae:.6f}
-  Direction Accuracy: {mean_accuracy*100:.2f}%
-  F1 Score:           {mean_f1:.4f}
-  vs Naive Baseline:  {(mean_accuracy - 0.5393)*100:+.2f} percentage points
- 
-What this means:
-  ARIMA is the classical statistical benchmark. Its direction accuracy
-  relative to the 53.93% naive baseline tells us how much predictive
-  value past return patterns contain under a linear model. Given the
-  near-zero ACF from Day 2, we expected ARIMA to show limited improvement
-  over the naive baseline -- consistent with the EMH.
- 
-Saved:
-  results/model_comparison.csv (updated with ARIMA row)
-  figures/day7_arima_results.png
-""")
  
