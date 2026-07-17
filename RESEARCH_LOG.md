@@ -172,7 +172,7 @@ Persistence        | 49.77%   | -4.16 pp
 GARCH(1,1)         | 49.23%   | -4.70 pp
 
 Summary: No classical model beat the naive baseline on average.
-The ML models in Phase 3 now need to beat 53.93% to justify complexity.
+The ML models innow need to beat 53.93% to justify complexity.
 
 ---
 
