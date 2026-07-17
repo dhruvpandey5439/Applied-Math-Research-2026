@@ -1,11 +1,3 @@
-# =============================================================================
-# PART 9: GBM + MONTE CARLO SIMULATION
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical AND mathematical
-# methods when forecasting financial time-series data?
-#
 # What GBM is:
 # Geometric Brownian Motion is the mathematical model of how stock prices move.
 # It is the foundation of the entire mathematical finance tradition --
@@ -24,22 +16,20 @@
 #
 # What Monte Carlo means:
 # Instead of solving the equation once, we simulate it N=1000 times,
-# each time drawing DIFFERENT random noise. This gives us 1,000 possible
+# each time drawing different random noise. This gives us 1,000 possible
 # futures. We take the MEDIAN simulated path as our direction forecast.
 #
 # Why this is different from ARIMA and GARCH:
 # ARIMA and GARCH learn patterns from past data.
-# GBM does NOT learn -- it says "prices follow drift + randomness"
+# GBM does not learn -- it says "prices follow drift + randomness"
 # and simulates from that assumption. The only things calibrated from
-# data are μ (mean daily return) and σ (std of daily returns).
+# data are μ (mean daily return) and σ (standard deviation of daily returns).
 # Everything else is pure mathematical theory.
 #
 # How GBM contributes to this project:
 # GBM represents the MATHEMATICAL FINANCE tradition -- the third category
-# in our three-way comparison. This is the core novelty of the project.
-# Most papers only compare statistical vs ML. We explicitly include
-# the mathematical tradition as a third benchmark.
-# =============================================================================
+# in our three-way comparison between ML, statistical models, and mathematical models.
+
 
 import os
 import warnings
@@ -55,9 +45,9 @@ plt.rcParams["figure.facecolor"]  = "#0e0e0e"
 plt.rcParams["axes.facecolor"]    = "#1a1a1a"
 plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
-# =============================================================================
+ 
 # STEP 1: LOAD DATA
-# =============================================================================
+
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -76,9 +66,9 @@ returns          = data["Return"]
 target_direction = data["target_direction"]
 target_return    = data["target_return"]
 
-# =============================================================================
+
 # STEP 2: WALK-FORWARD VALIDATION SETUP
-# =============================================================================
+
 
 n           = len(returns)
 n_splits    = 5
@@ -96,9 +86,9 @@ for i in range(n_splits):
 
 print(f"Walk-forward validation: {len(folds)} folds\n")
 
-# =============================================================================
+
 # STEP 3: MONTE CARLO GBM SIMULATION FUNCTION
-# =============================================================================
+
 
 def simulate_gbm_direction(mu, sigma, S0, n_simulations=1000, dt=1):
     """
@@ -131,9 +121,9 @@ def simulate_gbm_direction(mu, sigma, S0, n_simulations=1000, dt=1):
     direction        = 1 if median_price > S0 else 0
     return direction, simulated_prices
 
-# =============================================================================
+
 # STEP 4: GBM WALK-FORWARD LOOP
-# =============================================================================
+
 
 np.random.seed(42)
 
@@ -217,9 +207,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
         "actual_returns":    actual_returns,
     })
 
-# =============================================================================
+
 # STEP 5: AGGREGATE RESULTS
-# =============================================================================
+
 
 results_df = pd.DataFrame([{
     "fold":         r["fold"],
@@ -246,9 +236,9 @@ print(f"Mean Return MAE:          {mean_ret_mae:.6f}")
 print(f"vs Naive Baseline:        {(mean_dir_acc - naive_baseline)*100:+.2f} pp")
 print("=" * 60)
 
-# =============================================================================
+
 # STEP 6: SAVE RESULTS TO model_comparison.csv
-# =============================================================================
+
 
 results_dir     = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -279,9 +269,9 @@ else:
 combined.to_csv(comparison_path, index=False)
 print(f"\nSaved results to: {comparison_path}")
 
-# =============================================================================
+
 # STEP 7: VISUALIZATIONS
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -361,9 +351,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 8: FINAL SUMMARY
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("RESULTS SUMMARY")
