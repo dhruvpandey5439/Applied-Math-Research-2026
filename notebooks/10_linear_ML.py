@@ -1,18 +1,10 @@
-# =============================================================================
-# PART 10: RIDGE REGRESSION + LOGISTIC REGRESSION
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical AND mathematical
-# methods when forecasting financial time-series data?
-#
 # What these models are:
 # These are the SIMPLEST real ML models -- they form the entry point into
 # the machine learning tradition in this project.
 #
 # Logistic Regression (classification):
 #   Predicts direction (1=up, 0=down). Finds a LINEAR boundary separating
-#   up days from down days in feature space. Despite the name, it is a
+#   up days from down days in feature space. However, it is a
 #   classifier not a regressor.
 #
 # Ridge Regression (regression):
@@ -37,7 +29,7 @@
 #   Random Forest, XGBoost, and LSTM then get to show if non-linearity helps.
 #   The progression from linear → non-linear → deep learning is the core
 #   narrative of this project.
-# =============================================================================
+
 
 import os
 import warnings
@@ -56,12 +48,9 @@ plt.rcParams["figure.facecolor"]  = "#0e0e0e"
 plt.rcParams["axes.facecolor"]    = "#1a1a1a"
 plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
-# =============================================================================
+
 # STEP 1: LOAD DATA
-# =============================================================================
-# Unlike ARIMA and GARCH which only used the Return column (univariate),
-# ML models use ALL the engineered features from Part 3.
-# This is the first time we're actually using the full feature set.
+
 
 script_dir    = os.path.dirname(os.path.abspath(__file__))
 features_path = os.path.join(script_dir, "..", "data processed", "sp500_features.csv")
@@ -73,13 +62,10 @@ print(f"Data loaded: {data.index[0].date()} to {data.index[-1].date()} "
       f"({len(data)} rows)")
 print(f"Columns: {list(data.columns)}\n")
 
-# =============================================================================
+
 # STEP 2: DEFINE FEATURES AND TARGETS
-# =============================================================================
-# Feature columns: everything we engineered in Part 3
-# We exclude Close, High, Low, Open, Volume -- raw price/volume data
-# We exclude Return itself since it IS the target essentially
-# We exclude the two target columns
+
+
 
 feature_cols = [
     "return_lag_1", "return_lag_2", "return_lag_3", "return_lag_5",
@@ -95,9 +81,9 @@ print(f"Features used: {feature_cols}")
 print(f"X shape: {X.shape}")
 print(f"Class balance: {y_direction.mean():.4f} (fraction of up days)\n")
 
-# =============================================================================
+
 # STEP 3: WALK-FORWARD VALIDATION SETUP
-# =============================================================================
+
 # Same 5-fold expanding window setup used in Parts 8 and 9.
 
 n         = len(X)
@@ -116,9 +102,9 @@ for i in range(n_splits):
 
 print(f"Walk-forward validation: {len(folds)} folds\n")
 
-# =============================================================================
+
 # STEP 4: WALK-FORWARD LOOP
-# =============================================================================
+
 # For each fold:
 #   1. Split into train/test
 #   2. Scale features (CRITICAL for linear models -- explained below)
@@ -160,9 +146,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled  = scaler.transform(X_test)   # apply same scale to test
 
-    # -------------------------------------------------------------------------
+
     # LOGISTIC REGRESSION (direction classification)
-    # -------------------------------------------------------------------------
+
     # C=0.1: moderate regularization (smaller C = stronger penalty)
     # max_iter=1000: allow enough iterations to converge
     # random_state=42: reproducibility
@@ -173,9 +159,8 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
     log_acc = accuracy_score(y_dir_test, log_preds)
     log_f1  = f1_score(y_dir_test, log_preds, zero_division=0)
 
-    # -------------------------------------------------------------------------
     # RIDGE REGRESSION (return prediction)
-    # -------------------------------------------------------------------------
+
     # alpha=1.0: standard regularization strength starting point
     # We use Ridge to predict continuous return values
     ridge_model = Ridge(alpha=1.0)
@@ -212,9 +197,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
         "mae":          ridge_mae,
     })
 
-# =============================================================================
+
 # STEP 5: AGGREGATE RESULTS
-# =============================================================================
+
 
 log_df   = pd.DataFrame(logistic_results)
 ridge_df = pd.DataFrame(ridge_results)
@@ -244,12 +229,9 @@ print(f"  Mean MAE:       {mean_ridge_mae:.6f}")
 print(f"  vs Baseline:    {(mean_ridge_acc - naive_baseline)*100:+.2f} pp")
 print("=" * 60)
 
-# =============================================================================
+
 # STEP 6: FEATURE IMPORTANCE
-# =============================================================================
-# For logistic regression, the coefficients tell us which features
-# the model weighted most heavily. Larger absolute value = more important.
-# We refit on all training data (first 4 folds) to get stable coefficients.
+
 
 train_end_full = folds[-1][1]
 X_train_full   = X.iloc[:train_end_full]
@@ -270,9 +252,9 @@ coef_df = pd.DataFrame({
 print("\nLogistic Regression Feature Importance (by absolute coefficient):")
 print(coef_df[["feature", "coefficient"]].to_string(index=False))
 
-# =============================================================================
+
 # STEP 7: SAVE RESULTS TO model_comparison.csv
-# =============================================================================
+
 
 results_dir     = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -313,9 +295,8 @@ else:
 combined.to_csv(comparison_path, index=False)
 print(f"\nSaved results to: {comparison_path}")
 
-# =============================================================================
+
 # STEP 8: VISUALIZATIONS
-# =============================================================================
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -382,9 +363,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 9: FINAL SUMMARY
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("RESULTS SUMMARY")
