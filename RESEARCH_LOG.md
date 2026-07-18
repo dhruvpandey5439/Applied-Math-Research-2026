@@ -314,7 +314,7 @@ volatility_20 | 0.0954        | 0.1198
 
 **What This Means**
 Both complex ML models underperformed Logistic Regression -- the simpler
-linear model. This is one of the most important findings in the project.
+linear model. This is one of the more important findings for this project.
 
 Three reasons why:
 1. Features are weak. All 9 features come from past returns and volatility.
@@ -322,7 +322,7 @@ Three reasons why:
    model complexity. There is not much to find.
 2. Complex models overfit more. Logistic Regression is constrained to a
    linear boundary which works better here because the true signal (if any)
-   is tiny and approximately linear. RF and XGBoost have more capacity to
+   is tiny and approximately linear. However,RF and XGBoost have more capacity to
    memorize noise in training data.
 3. Consistent with Makridakis (2018) -- complexity does not automatically
    help on noisy financial data.
