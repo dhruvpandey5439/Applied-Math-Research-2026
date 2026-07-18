@@ -1,15 +1,8 @@
-# =============================================================================
 # PART 12: LSTM (LONG SHORT-TERM MEMORY)
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical and mathematical
-# methods when forecasting financial time-series data?
-#
 # What LSTM is:
 # LSTM is a type of Recurrent Neural Network (RNN) designed to learn
 # patterns from SEQUENCES of data. Every other model in this project
-# treats each day independently -- it gets today's features and predicts
+# treats each part independently -- it gets today's features and predicts
 # tomorrow. LSTM is different: it reads a WINDOW of past days in order
 # and maintains a memory of what it has seen.
 #
@@ -17,7 +10,7 @@
 # Markets have regime-dependent behavior -- patterns that span many days
 # or weeks, not just yesterday. LSTM is theoretically capable of learning
 # these longer-range dependencies. Whether it actually DOES on noisy
-# financial data is exactly what this part tests.
+# financial data is exactly what we will test.
 #
 # The three gates (simplified):
 #   Forget gate:  decides what to erase from memory
@@ -33,7 +26,7 @@
 # The research question is answered by comparing LSTM's accuracy
 # against ARIMA, GARCH, GBM, Logistic, RF, and XGBoost.
 # More complexity should mean more accuracy -- but does it?
-# =============================================================================
+
 
 import os
 import warnings
@@ -58,9 +51,9 @@ plt.rcParams["figure.facecolor"]  = "#0e0e0e"
 plt.rcParams["axes.facecolor"]    = "#1a1a1a"
 plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
-# =============================================================================
+
 # STEP 1: LOAD DATA
-# =============================================================================
+
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -86,33 +79,30 @@ y     = data["target_direction"].values
 print(f"Features: {feature_cols}")
 print(f"Total samples: {len(X_raw)}\n")
 
-# =============================================================================
 # STEP 2: SCALE FEATURES
-# =============================================================================
+
 # LSTM is a neural network -- it is sensitive to feature scale.
 # We scale the ENTIRE feature matrix here using StandardScaler.
 #
 # IMPORTANT NOTE ON SCALING FOR LSTM:
 # Ideally we would scale inside each fold to prevent any leakage.
-# For LSTM with sequences this adds significant complexity.
 # In practice for financial returns -- which are already small,
 # mean-zero, and similarly scaled -- global scaling introduces
 # negligible leakage. We note this as a minor limitation.
 #
 # StandardScaler: transforms each feature to mean=0, std=1.
 # This ensures no single feature dominates due to scale alone.
-# =============================================================================
+
 
 scaler   = StandardScaler()
 X_scaled = scaler.fit_transform(X_raw)
 
 print("Features scaled with StandardScaler (global fit -- see comment above).")
 
-# =============================================================================
 # STEP 3: CREATE SEQUENCES
-# =============================================================================
+
 # LSTM does not take single-day feature vectors as input.
-# It takes SEQUENCES -- windows of consecutive days.
+# It takes sequences/windows of consecutive days.
 #
 # LOOKBACK = 20 means: for each prediction, give the model the
 # past 20 days of features as a 3D input:
@@ -126,7 +116,7 @@ print("Features scaled with StandardScaler (global fit -- see comment above).")
 # Why 20 days?
 # 20 trading days ≈ 1 calendar month. A reasonable window to
 # capture short-to-medium term patterns without excessive memory.
-# =============================================================================
+
 
 LOOKBACK = 20
 
@@ -159,16 +149,16 @@ print(f"Sequences created:")
 print(f"  X_seq shape: {X_seq.shape}  (samples, timesteps, features)")
 print(f"  y_seq shape: {y_seq.shape}\n")
 
-# =============================================================================
+
 # STEP 4: WALK-FORWARD VALIDATION SETUP
-# =============================================================================
+
 # Same walk-forward logic as all previous parts.
 # We use 3 folds instead of 5 because LSTM retrains a full neural
 # network each fold -- 5 folds would take too long.
 #
 # Each fold: train on earlier sequences, validate on later sequences.
 # The test window never overlaps with training -- strictly chronological.
-# =============================================================================
+
 
 n        = len(X_seq)
 n_splits = 3
@@ -190,9 +180,9 @@ for i, (_, train_end, test_start, test_end) in enumerate(folds):
           f"({test_end - test_start} samples)")
 print()
 
-# =============================================================================
+
 # STEP 5: BUILD LSTM MODEL
-# =============================================================================
+
 # Architecture:
 #   Layer 1: LSTM(64 units) -- reads the 20-day sequence, returns full sequence
 #   Dropout(0.2)             -- randomly zeros 20% of connections each batch
@@ -203,7 +193,7 @@ print()
 # Why two LSTM layers?
 # The first layer learns low-level temporal patterns (e.g. short momentum).
 # The second layer learns higher-level patterns from those (e.g. regime shifts).
-# Stacking gives more representational power than a single layer.
+# Stacking gives more power than a single layer.
 #
 # Why Dropout?
 # Neural networks with many parameters easily memorize training data.
@@ -214,7 +204,7 @@ print()
 # We need a probability between 0 and 1 for binary classification.
 # Sigmoid maps any real number to (0,1).
 # Output > 0.5 → predict "up". Output <= 0.5 → predict "down".
-# =============================================================================
+
 
 def build_lstm(input_shape):
     """
@@ -238,6 +228,7 @@ def build_lstm(input_shape):
     # Measures how far predicted probabilities are from true labels.
     # Adam: adaptive learning rate optimizer. Adjusts step size
     # automatically during training. Standard choice for deep learning.
+
     model.compile(
         optimizer="adam",
         loss="binary_crossentropy",
@@ -252,9 +243,9 @@ print("LSTM Architecture:")
 sample_model.summary()
 print()
 
-# =============================================================================
+
 # STEP 6: WALK-FORWARD TRAINING LOOP
-# =============================================================================
+
 
 fold_results   = []
 all_train_loss = []
@@ -322,9 +313,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
 
 print(f"{'='*50}\n")
 
-# =============================================================================
+
 # STEP 7: AGGREGATE RESULTS
-# =============================================================================
+
 
 results_df = pd.DataFrame([{
     "fold":       r["fold"],
@@ -346,9 +337,9 @@ print(f"vs Naive Baseline:        {(mean_acc - naive_baseline)*100:+.2f} pp")
 print(f"Mean Epochs Run:          {results_df['epochs_run'].mean():.1f}")
 print("=" * 60)
 
-# =============================================================================
+
 # STEP 8: SAVE RESULTS
-# =============================================================================
+
 
 results_dir     = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -380,9 +371,9 @@ else:
 combined.to_csv(comparison_path, index=False)
 print(f"\nSaved results to: {comparison_path}")
 
-# =============================================================================
+
 # STEP 9: VISUALIZATIONS
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
