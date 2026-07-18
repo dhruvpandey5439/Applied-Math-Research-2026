@@ -1,11 +1,5 @@
-# =============================================================================
 # PART 11: RANDOM FOREST + XGBOOST
-# =============================================================================
 # Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical AND mathematical
-# methods when forecasting financial time-series data?
-#
 # What these models are:
 # These are the COMPLEX ML models -- non-linear ensemble methods that can
 # capture feature interactions and non-linear patterns that linear models miss.
@@ -21,17 +15,16 @@
 #   correct the mistakes the previous trees made. This is called gradient
 #   boosting. More powerful than Random Forest but more sensitive to tuning.
 #
-# Why these are "complex ML":
+# Why these are considered "complex" Machine Learning:
 #   Unlike Logistic/Ridge which find a single linear boundary, these models
 #   capture non-linear relationships and feature interactions:
 #   e.g. "when volatility is high AND return_lag_1 is negative → predict down"
 #   Linear models cannot represent this kind of conditional logic.
-#
-# Key question for the research:
+
 #   Logistic Regression got 54.40% (+0.47pp above baseline).
 #   Do non-linear ensemble methods do meaningfully better?
 #   This is what Part 11 answers.
-# =============================================================================
+
 
 import os
 import warnings
@@ -49,9 +42,9 @@ plt.rcParams["figure.facecolor"]  = "#0e0e0e"
 plt.rcParams["axes.facecolor"]    = "#1a1a1a"
 plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
-# =============================================================================
+
 # STEP 1: LOAD DATA
-# =============================================================================
+
 
 script_dir    = os.path.dirname(os.path.abspath(__file__))
 features_path = os.path.join(script_dir, "..", "data processed", "sp500_features.csv")
@@ -63,9 +56,9 @@ print(f"Data loaded: {data.index[0].date()} to {data.index[-1].date()} "
       f"({len(data)} rows)")
 print(f"Columns: {list(data.columns)}\n")
 
-# =============================================================================
+
 # STEP 2: DEFINE FEATURES AND TARGETS
-# =============================================================================
+
 # Same feature set as Part 10 -- keeping it consistent across all ML models
 # so results are directly comparable.
 
@@ -82,9 +75,9 @@ print(f"Features: {feature_cols}")
 print(f"X shape: {X.shape}")
 print(f"Class balance: {y_direction.mean():.4f} (fraction of up days)\n")
 
-# =============================================================================
+
 # STEP 3: WALK-FORWARD VALIDATION SETUP
-# =============================================================================
+
 
 n         = len(X)
 n_splits  = 5
@@ -102,13 +95,12 @@ for i in range(n_splits):
 
 print(f"Walk-forward validation: {len(folds)} folds\n")
 
-# =============================================================================
+
 # STEP 4: WALK-FORWARD LOOP
-# =============================================================================
+
 # NOTE: Tree-based models (Random Forest, XGBoost) do NOT need StandardScaler.
-# Unlike linear models, trees split on feature values using thresholds --
-# the absolute scale of features doesn't affect which splits are chosen.
-# Scaling would not hurt but is unnecessary here.
+# Unlike linear models, trees split on feature values using thresholds
+
 
 rf_results  = []
 xgb_results = []
@@ -126,9 +118,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
     print(f"  Test:  {X.index[test_start].date()} → "
           f"{X.index[test_end - 1].date()} ({test_end - test_start} rows)")
 
-    # -------------------------------------------------------------------------
+   
     # RANDOM FOREST
-    # -------------------------------------------------------------------------
+   
     # n_estimators=200: build 200 trees (more trees = more stable, diminishing
     #                   returns beyond ~200 for this dataset size)
     # max_depth=4: limit tree depth to prevent overfitting. Shallow trees
@@ -154,9 +146,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
     rf_acc = accuracy_score(y_test, rf_preds)
     rf_f1  = f1_score(y_test, rf_preds, zero_division=0)
 
-    # -------------------------------------------------------------------------
+   
     # XGBOOST
-    # -------------------------------------------------------------------------
+  
     # n_estimators=200: number of boosting rounds (trees built sequentially)
     # max_depth=3: shallower than RF -- XGBoost boosting compensates for depth
     # learning_rate=0.05: how much each tree corrects the previous. Smaller =
@@ -201,9 +193,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
         "f1_score":   xgb_f1,
     })
 
-# =============================================================================
+
 # STEP 5: AGGREGATE RESULTS
-# =============================================================================
+
 
 rf_df  = pd.DataFrame(rf_results)
 xgb_df = pd.DataFrame(xgb_results)
@@ -232,9 +224,9 @@ print(f"  vs Baseline:    {(mean_xgb_acc - naive_baseline)*100:+.2f} pp")
 print(f"  vs Logistic:    {(mean_xgb_acc - logistic_acc)*100:+.2f} pp")
 print("=" * 60)
 
-# =============================================================================
+
 # STEP 6: FEATURE IMPORTANCE
-# =============================================================================
+
 # Both models give feature importance scores.
 # Random Forest: average reduction in impurity across all trees
 # XGBoost: average gain from splits using each feature
@@ -270,9 +262,9 @@ importance_df = pd.DataFrame({
 print("\nFeature Importance:")
 print(importance_df[["feature", "rf_importance", "xgb_importance"]].to_string(index=False))
 
-# =============================================================================
+
 # STEP 7: SAVE RESULTS TO model_comparison.csv
-# =============================================================================
+
 
 results_dir     = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -313,9 +305,9 @@ else:
 combined.to_csv(comparison_path, index=False)
 print(f"\nSaved results to: {comparison_path}")
 
-# =============================================================================
+
 # STEP 8: VISUALIZATIONS
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -393,9 +385,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 9: FINAL SUMMARY
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("RESULTS SUMMARY")
