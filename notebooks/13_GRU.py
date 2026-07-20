@@ -1,11 +1,4 @@
-# =============================================================================
 # PART 13: GRU (GATED RECURRENT UNIT)
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical and mathematical
-# methods when forecasting financial time-series data?
-#
 # What GRU is:
 # GRU (Gated Recurrent Unit) is a simplified version of LSTM. Both are
 # recurrent neural networks that process sequences of data and maintain
@@ -37,7 +30,7 @@
 # ladder. Together they give a complete picture of whether sequential
 # deep learning — regardless of specific architecture — adds value over
 # simpler models for financial direction forecasting.
-# =============================================================================
+
 
 import os
 import warnings
@@ -62,9 +55,9 @@ plt.rcParams["figure.facecolor"]  = "#0e0e0e"
 plt.rcParams["axes.facecolor"]    = "#1a1a1a"
 plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
-# =============================================================================
+
 # STEP 1: LOAD DATA
-# =============================================================================
+
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -90,27 +83,26 @@ y     = data["target_direction"].values
 print(f"Features: {feature_cols}")
 print(f"Total samples: {len(X_raw)}\n")
 
-# =============================================================================
 # STEP 2: SCALE FEATURES
-# =============================================================================
+
 # Same global scaling as Part 12 LSTM for direct comparability.
 # StandardScaler: transforms each feature to mean=0, std=1.
 # Minor limitation: global fit includes future data in scaling statistics.
 # Noted as limitation in paper — same caveat as Part 12.
-# =============================================================================
+
 
 scaler   = StandardScaler()
 X_scaled = scaler.fit_transform(X_raw)
 
 print("Features scaled with StandardScaler (global fit — same as Part 12).")
 
-# =============================================================================
+
 # STEP 3: CREATE SEQUENCES
-# =============================================================================
+
 # Identical to Part 12. LOOKBACK=20 days for direct comparability with LSTM.
 # Each prediction uses the past 20 days of features as input.
 # Shape: (samples, timesteps, features) = (N, 20, 9)
-# =============================================================================
+
 
 LOOKBACK = 20
 
@@ -140,13 +132,13 @@ print(f"Sequences created:")
 print(f"  X_seq shape: {X_seq.shape}  (samples, timesteps, features)")
 print(f"  y_seq shape: {y_seq.shape}\n")
 
-# =============================================================================
+
 # STEP 4: WALK-FORWARD VALIDATION SETUP
-# =============================================================================
+
 # Identical to Part 12: 3 folds, 12% test size, 50% minimum training.
 # Using identical fold structure ensures GRU and LSTM results are
 # directly comparable — same data splits, same validation windows.
-# =============================================================================
+
 
 n          = len(X_seq)
 n_splits   = 3
@@ -168,9 +160,9 @@ for i, (_, train_end, test_start, test_end) in enumerate(folds):
           f"({test_end - test_start} samples)")
 print()
 
-# =============================================================================
+
 # STEP 5: BUILD GRU MODEL
-# =============================================================================
+
 # Architecture mirrors Part 12 LSTM exactly, with GRU layers substituted:
 #   Layer 1: GRU(64 units)  -- reads 20-day sequence, returns full sequence
 #   Dropout(0.2)             -- same regularization as LSTM
@@ -192,7 +184,7 @@ print()
 # Layer 2: 3 * [(64 + 32) * 32 + 32] = ~9,312 parameters
 # Total: ~23,520 parameters vs LSTM's 31,393
 # Fewer parameters = faster training, less prone to overfitting.
-# =============================================================================
+
 
 def build_gru(input_shape):
     """
@@ -227,9 +219,9 @@ print("GRU Architecture:")
 sample_model.summary()
 print()
 
-# =============================================================================
+
 # STEP 6: WALK-FORWARD TRAINING LOOP
-# =============================================================================
+
 
 fold_results   = []
 all_train_loss = []
@@ -293,9 +285,9 @@ for fold_idx, (train_start, train_end, test_start, test_end) in enumerate(folds)
 
 print(f"{'='*50}\n")
 
-# =============================================================================
+
 # STEP 7: AGGREGATE RESULTS
-# =============================================================================
+
 
 results_df = pd.DataFrame([{
     "fold":       r["fold"],
@@ -319,9 +311,9 @@ print(f"vs LSTM (Part 12):        {(mean_acc - lstm_accuracy)*100:+.2f} pp")
 print(f"Mean Epochs Run:          {results_df['epochs_run'].mean():.1f}")
 print("=" * 60)
 
-# =============================================================================
+
 # STEP 8: SAVE RESULTS
-# =============================================================================
+
 
 results_dir     = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -355,9 +347,9 @@ else:
 combined.to_csv(comparison_path, index=False)
 print(f"\nSaved results to: {comparison_path}")
 
-# =============================================================================
+
 # STEP 9: VISUALIZATIONS
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -434,9 +426,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 10: FINAL SUMMARY
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("RESULTS SUMMARY")

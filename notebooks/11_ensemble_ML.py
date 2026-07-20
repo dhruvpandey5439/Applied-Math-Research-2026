@@ -1,9 +1,4 @@
 # PART 11: RANDOM FOREST + XGBOOST
-# Research Question:
-# What these models are:
-# These are the COMPLEX ML models -- non-linear ensemble methods that can
-# capture feature interactions and non-linear patterns that linear models miss.
-#
 # Random Forest:
 #   Builds hundreds of decision trees, each trained on a random subset of
 #   data and features. Takes majority vote across all trees for final
