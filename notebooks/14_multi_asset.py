@@ -1,11 +1,4 @@
-# =============================================================================
 # PART 14: MULTI-ASSET EXPANSION
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical and mathematical
-# methods when forecasting financial time-series data?
-#
 # What this part does:
 # Runs the full pipeline on 3 additional assets beyond S&P 500:
 #   NVDA  — individual stock (NVIDIA Corporation)
@@ -25,12 +18,7 @@
 # requires statsmodels which has a version conflict in tf_env.
 # Its classical statistical limitation is already established on
 # the primary asset. The paper will state this explicitly.
-#
-# Why GBM + Monte Carlo is included:
-# GBM has no external dependencies beyond numpy — no version conflicts.
-# It represents the mathematical tradition needed for the three-way
-# comparison across all assets.
-# =============================================================================
+
 
 import os
 import warnings
@@ -58,9 +46,8 @@ plt.rcParams["figure.facecolor"]  = "#0e0e0e"
 plt.rcParams["axes.facecolor"]    = "#1a1a1a"
 plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
-# =============================================================================
+
 # CONFIGURATION
-# =============================================================================
 
 TICKERS        = ["NVDA", "GLD", "EWJ"]
 START_DATE     = "2000-01-01"
@@ -72,9 +59,9 @@ SP500_BASELINE = 0.5393
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# =============================================================================
+
 # HELPER FUNCTIONS
-# =============================================================================
+
 
 def download_and_prepare(ticker, start, end):
     """
@@ -192,9 +179,9 @@ def simulate_gbm_direction(mu, sigma, S0, n_simulations=1000, dt=1):
     return direction
 
 
-# =============================================================================
+
 # MAIN PIPELINE
-# =============================================================================
+
 
 feature_cols = [
     "return_lag_1", "return_lag_2", "return_lag_3",
@@ -226,9 +213,9 @@ for ticker in TICKERS:
     folds          = get_folds(n, N_SPLITS)
     ticker_results = {"ticker": ticker}
 
-    # -------------------------------------------------------------------------
+
     # MODEL 1: NAIVE BASELINE
-    # -------------------------------------------------------------------------
+   
     print(f"\n--- {ticker}: Naive Baseline ---")
 
     all_naive_preds = []
@@ -247,9 +234,9 @@ for ticker in TICKERS:
     ticker_results["naive_accuracy"] = naive_acc
     ticker_results["naive_f1"]       = naive_f1
 
-    # -------------------------------------------------------------------------
+ 
     # MODEL 2: GBM + MONTE CARLO
-    # -------------------------------------------------------------------------
+
     print(f"\n--- {ticker}: GBM + Monte Carlo ---")
 
     gbm_fold_accs = []
@@ -288,9 +275,9 @@ for ticker in TICKERS:
     ticker_results["gbm_accuracy"] = gbm_acc
     ticker_results["gbm_f1"]       = gbm_f1
 
-    # -------------------------------------------------------------------------
+
     # MODEL 3: LOGISTIC REGRESSION
-    # -------------------------------------------------------------------------
+
     print(f"\n--- {ticker}: Logistic Regression ---")
 
     log_fold_accs = []
@@ -323,9 +310,9 @@ for ticker in TICKERS:
     ticker_results["logistic_accuracy"] = log_acc
     ticker_results["logistic_f1"]       = log_f1
 
-    # -------------------------------------------------------------------------
+
     # MODEL 4: RANDOM FOREST
-    # -------------------------------------------------------------------------
+ 
     print(f"\n--- {ticker}: Random Forest ---")
 
     rf_fold_accs = []
@@ -359,9 +346,9 @@ for ticker in TICKERS:
     ticker_results["rf_accuracy"] = rf_acc
     ticker_results["rf_f1"]       = rf_f1
 
-    # -------------------------------------------------------------------------
+
     # MODEL 5: LSTM
-    # -------------------------------------------------------------------------
+
     print(f"\n--- {ticker}: LSTM ---")
 
     scaler_seq   = StandardScaler()
@@ -401,9 +388,9 @@ for ticker in TICKERS:
     ticker_results["lstm_accuracy"] = lstm_acc
     ticker_results["lstm_f1"]       = lstm_f1
 
-    # -------------------------------------------------------------------------
+
     # MODEL 6: GRU
-    # -------------------------------------------------------------------------
+  
     print(f"\n--- {ticker}: GRU ---")
 
     gru_fold_accs = []
@@ -440,9 +427,9 @@ for ticker in TICKERS:
 
     all_asset_results.append(ticker_results)
 
-    # -------------------------------------------------------------------------
+
     # SAVE ASSET RESULTS
-    # -------------------------------------------------------------------------
+
     asset_results_dir = os.path.join(script_dir, "..", "results", ticker)
     os.makedirs(asset_results_dir, exist_ok=True)
 
@@ -465,9 +452,9 @@ for ticker in TICKERS:
                                   f"{ticker}_model_comparison.csv"), index=False)
     print(f"\nSaved {ticker} results.")
 
-    # -------------------------------------------------------------------------
+
     # ASSET FIGURE
-    # -------------------------------------------------------------------------
+
     asset_figures_dir = os.path.join(script_dir, "..", "figures", ticker)
     os.makedirs(asset_figures_dir, exist_ok=True)
 
@@ -509,9 +496,9 @@ for ticker in TICKERS:
     plt.show()
     print(f"Saved figure: {fig_path}")
 
-# =============================================================================
+
 # CROSS-ASSET SUMMARY
-# =============================================================================
+
 
 print(f"\n{'='*60}")
 print("CROSS-ASSET SUMMARY")
@@ -528,9 +515,9 @@ summary_path = os.path.join(script_dir, "..", "results",
 summary_df.to_csv(summary_path)
 print(f"\nSaved cross-asset summary to: {summary_path}")
 
-# =============================================================================
+
 # CROSS-ASSET FIGURE
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
