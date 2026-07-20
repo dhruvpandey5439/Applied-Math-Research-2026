@@ -1,11 +1,4 @@
-# =============================================================================
 # PART 15: SIGNIFICANCE TESTING
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical and mathematical
-# methods when forecasting financial time-series data?
-#
 # What this part does:
 # Tests whether the accuracy differences between models are statistically
 # significant or just noise. Two tests are used:
@@ -27,7 +20,7 @@
 # better than another. p < 0.05 means the difference is statistically
 # significant. p > 0.05 means it could be noise — which is itself
 # a valid and honest finding.
-# =============================================================================
+
 
 import os
 import warnings
@@ -45,13 +38,13 @@ plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# =============================================================================
+
 # SECTION 1: RE-RUN KEY S&P 500 MODELS WITH PREDICTION SAVING
-# =============================================================================
+
 # We re-run 4 models on S&P 500 with prediction arrays saved to disk.
 # Models: Naive Baseline, ARIMA, Logistic Regression, LSTM
 # These are the 4 most important comparisons for the DM test.
-# =============================================================================
+
 
 print("=" * 60)
 print("SECTION 1: RE-RUNNING KEY S&P 500 MODELS")
@@ -98,9 +91,9 @@ folds = get_folds(n, n_splits=3)
 saved_preds = {}
 saved_true  = {}
 
-# =============================================================================
+
 # MODEL 1: NAIVE BASELINE — save predictions
-# =============================================================================
+
 print("\n--- Re-running: Naive Baseline ---")
 
 naive_preds = []
@@ -121,9 +114,9 @@ saved_true["naive"]  = naive_true
 naive_acc = np.mean(naive_preds == naive_true)
 print(f"Naive Baseline Accuracy: {naive_acc*100:.2f}%")
 
-# =============================================================================
+
 # MODEL 2: ARIMA — save predictions
-# =============================================================================
+
 print("\n--- Re-running: ARIMA(1,0,1) ---")
 print("(This will take several minutes...)")
 
@@ -162,9 +155,9 @@ saved_true["arima"]  = arima_true
 arima_acc = np.mean(arima_preds == arima_true)
 print(f"ARIMA Accuracy: {arima_acc*100:.2f}%")
 
-# =============================================================================
+
 # MODEL 3: LOGISTIC REGRESSION — save predictions
-# =============================================================================
+
 print("\n--- Re-running: Logistic Regression ---")
 
 from sklearn.preprocessing import StandardScaler
@@ -202,9 +195,9 @@ saved_true["logistic"]  = log_true
 log_acc = accuracy_score(log_true, log_preds)
 print(f"Logistic Accuracy: {log_acc*100:.2f}%")
 
-# =============================================================================
+
 # MODEL 4: LSTM — save predictions
-# =============================================================================
+
 print("\n--- Re-running: LSTM ---")
 
 import tensorflow as tf
@@ -287,9 +280,9 @@ for model_name, preds in saved_preds.items():
 
 print(f"\nSaved prediction arrays to results/predictions/")
 
-# =============================================================================
+
 # SECTION 2: DIEBOLD-MARIANO TESTS
-# =============================================================================
+
 # Tests whether accuracy differences between model pairs are significant.
 # Uses squared error loss: loss(t) = (pred(t) - true(t))^2
 # For binary predictions: error = 1 if wrong, 0 if correct.
@@ -297,7 +290,7 @@ print(f"\nSaved prediction arrays to results/predictions/")
 # DM statistic: mean(d) / sqrt(variance(d) / n)
 # p < 0.05: one model is significantly better.
 # p > 0.05: difference is not statistically distinguishable from noise.
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("SECTION 2: DIEBOLD-MARIANO TESTS")
@@ -403,16 +396,16 @@ for label, m1, m2 in dm_comparisons:
         "better_model": better,
     })
 
-# =============================================================================
+
 # SECTION 3: BINOMIAL SIGNIFICANCE TESTS
-# =============================================================================
+
 # Tests whether each model's accuracy is significantly above the naive
 # baseline. Uses one-sided binomial test.
 # H0: model accuracy <= naive baseline accuracy
 # H1: model accuracy > naive baseline accuracy
 # p < 0.05: model significantly beats the baseline.
 # p > 0.05: cannot conclude model beats the baseline.
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("SECTION 3: BINOMIAL SIGNIFICANCE TESTS")
@@ -475,9 +468,9 @@ for asset, model, acc, n_total, baseline in all_results:
         "significant": p_val < 0.05,
     })
 
-# =============================================================================
+
 # SECTION 4: SAVE ALL RESULTS
-# =============================================================================
+
 
 results_dir = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -491,9 +484,9 @@ binomial_df.to_csv(os.path.join(results_dir, "binomial_test_results.csv"),
                    index=False)
 print(f"Saved binomial results to results/binomial_test_results.csv")
 
-# =============================================================================
+
 # SECTION 5: VISUALIZATIONS
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -553,9 +546,8 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # SECTION 6: SUMMARY
-# =============================================================================
 
 print("\n" + "=" * 60)
 print("SIGNIFICANCE TESTING SUMMARY")
