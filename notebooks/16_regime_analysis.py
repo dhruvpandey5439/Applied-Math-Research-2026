@@ -1,11 +1,6 @@
-# =============================================================================
+
 # PART 16: REGIME SPLIT ANALYSIS
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical and mathematical
-# methods when forecasting financial time-series data?
-#
+
 # What this part does:
 # Splits the S&P 500 data into two market regimes and re-runs key models
 # on each regime separately:
@@ -25,7 +20,7 @@
 #   2. Logistic Regression
 #   3. Random Forest
 #   4. LSTM
-# =============================================================================
+
 
 import os
 import warnings
@@ -54,9 +49,9 @@ plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# =============================================================================
+
 # STEP 1: LOAD DATA
-# =============================================================================
+
 
 features_path = os.path.join(
     script_dir, "..", "data processed", "sp500_features.csv"
@@ -73,14 +68,14 @@ feature_cols = [
     "volatility_5", "volatility_10", "volatility_20"
 ]
 
-# =============================================================================
+
 # STEP 2: SPLIT INTO REGIMES
-# =============================================================================
+
 # Pre-2020: everything before COVID crash
 # Post-2020: COVID crash onwards — fundamentally different market
 # The split date of 2020-01-01 is standard in financial research
 # as a structural break point due to COVID-19.
-# =============================================================================
+
 
 pre_2020  = data[data.index < "2020-01-01"].copy()
 post_2020 = data[data.index >= "2020-01-01"].copy()
@@ -90,9 +85,9 @@ print(f"Pre-2020:  {pre_2020.index[0].date()} to "
 print(f"Post-2020: {post_2020.index[0].date()} to "
       f"{post_2020.index[-1].date()} ({len(post_2020)} rows)\n")
 
-# =============================================================================
+
 # HELPER FUNCTIONS
-# =============================================================================
+
 
 LOOKBACK = 20
 
@@ -292,16 +287,16 @@ def run_regime(regime_data, regime_name):
     return results
 
 
-# =============================================================================
+
 # STEP 3: RUN BOTH REGIMES
-# =============================================================================
+
 
 pre_results  = run_regime(pre_2020,  "Pre-2020  (2000-2019)")
 post_results = run_regime(post_2020, "Post-2020 (2020-2026)")
 
-# =============================================================================
+
 # STEP 4: SAVE RESULTS
-# =============================================================================
+
 
 results_dir = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -310,9 +305,9 @@ regime_df = pd.DataFrame([pre_results, post_results])
 regime_df.to_csv(os.path.join(results_dir, "regime_analysis.csv"), index=False)
 print(f"\nSaved regime results to results/regime_analysis.csv")
 
-# =============================================================================
+
 # STEP 5: CROSS-REGIME COMPARISON FIGURE
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -359,9 +354,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 6: FINAL SUMMARY
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("REGIME ANALYSIS SUMMARY")
