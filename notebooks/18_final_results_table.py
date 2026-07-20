@@ -1,11 +1,4 @@
-# =============================================================================
 # PART 18: FINAL RESULTS TABLE
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical and mathematical
-# methods when forecasting financial time-series data?
-#
 # What this part does:
 # Compiles every model, every metric, and every significance test result
 # into one clean master results table. This table becomes the core of
@@ -20,7 +13,7 @@
 #   results/dm_test_results.csv
 #   results/binomial_test_results.csv
 #   results/sharpe_ratio_results.csv
-# =============================================================================
+
 
 import os
 import warnings
@@ -41,9 +34,9 @@ results_dir = os.path.join(script_dir, "..", "results")
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
 
-# =============================================================================
+
 # STEP 1: MASTER RESULTS TABLE
-# =============================================================================
+
 
 master_results = [
     {
@@ -193,9 +186,9 @@ master_results = [
 
 master_df = pd.DataFrame(master_results)
 
-# =============================================================================
+
 # STEP 2: PRINT MASTER TABLE
-# =============================================================================
+
 
 print("=" * 100)
 print("MASTER RESULTS TABLE — S&P 500 PRIMARY ANALYSIS")
@@ -207,9 +200,9 @@ display_cols = ["model", "tradition", "accuracy", "f1",
 
 print(master_df[display_cols].to_string(index=False))
 
-# =============================================================================
+
 # STEP 3: CROSS-ASSET SUMMARY TABLE
-# =============================================================================
+
 
 print("\n" + "=" * 80)
 print("CROSS-ASSET SUMMARY TABLE")
@@ -228,9 +221,8 @@ cross_asset = {
 cross_df = pd.DataFrame(cross_asset)
 print(cross_df.to_string(index=False))
 
-# =============================================================================
+
 # STEP 4: SIGNIFICANCE TESTING SUMMARY TABLE
-# =============================================================================
 
 print("\n" + "=" * 80)
 print("SIGNIFICANCE TESTING SUMMARY TABLE")
@@ -249,9 +241,9 @@ sig_summary = {
 sig_df = pd.DataFrame(sig_summary)
 print(sig_df.to_string(index=False))
 
-# =============================================================================
+
 # STEP 5: REGIME ANALYSIS SUMMARY TABLE
-# =============================================================================
+
 
 print("\n" + "=" * 80)
 print("REGIME ANALYSIS SUMMARY TABLE")
@@ -268,9 +260,9 @@ regime_summary = {
 regime_df = pd.DataFrame(regime_summary)
 print(regime_df.to_string(index=False))
 
-# =============================================================================
+
 # STEP 6: SAVE ALL TABLES
-# =============================================================================
+
 
 master_df.to_csv(os.path.join(results_dir, "master_results_table.csv"),
                  index=False)
@@ -283,9 +275,9 @@ regime_df.to_csv(os.path.join(results_dir, "regime_summary_table.csv"),
 
 print(f"\nSaved all tables to results/")
 
-# =============================================================================
+
 # STEP 7: FINAL MASTER FIGURE
-# =============================================================================
+
 
 fig, axes = plt.subplots(2, 2, figsize=(18, 12))
 fig.suptitle("Part 18: Complete Results Summary",
@@ -422,9 +414,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 8: FINAL SUMMARY STATEMENT
-# =============================================================================
+
 
 print("\n" + "=" * 80)
 print("FINAL RESEARCH SUMMARY")
