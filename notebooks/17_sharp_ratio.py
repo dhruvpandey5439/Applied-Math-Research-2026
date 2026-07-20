@@ -1,11 +1,4 @@
-# =============================================================================
 # PART 17: SHARPE RATIO SANITY CHECK
-# =============================================================================
-# Research Question:
-# To what extent do increasingly complex machine learning models improve
-# predictive performance compared to classical statistical and mathematical
-# methods when forecasting financial time-series data?
-#
 # What this part does:
 # Simulates a simple trading strategy based on each model's direction
 # predictions and computes the Sharpe ratio — a measure of risk-adjusted
@@ -29,11 +22,7 @@
 # returns if it misses the biggest up days. Conversely, a model might
 # do worse on accuracy but time its predictions better. The Sharpe
 # ratio captures the full picture of trading performance.
-#
-# This is a SANITY CHECK — not a core finding. It answers the practical
-# question: even if models can't significantly beat the naive baseline
-# in accuracy, do any of them produce better risk-adjusted returns?
-# =============================================================================
+
 
 import os
 import warnings
@@ -50,9 +39,7 @@ plt.rcParams["savefig.facecolor"] = "#0e0e0e"
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# =============================================================================
 # STEP 1: LOAD DATA AND PREDICTIONS
-# =============================================================================
 
 features_path = os.path.join(
     script_dir, "..", "data processed", "sp500_features.csv"
@@ -80,9 +67,9 @@ for model in models_to_load:
     else:
         print(f"WARNING: {path} not found. Run Part 15 first.")
 
-# =============================================================================
+
 # STEP 2: LOAD ACTUAL RETURNS FOR THE SAME PERIOD
-# =============================================================================
+
 # We need the actual S&P 500 returns for the prediction period.
 # The prediction arrays from Part 15 cover the walk-forward validation
 # windows — we align actual returns to these windows.
@@ -90,7 +77,7 @@ for model in models_to_load:
 # Strategy: use the actual next-day return (target_return) for each
 # prediction day. If model says UP, we earn that return. If DOWN, we
 # earn 0 (sitting in cash).
-# =============================================================================
+
 
 # Get actual returns aligned to prediction period
 # Predictions cover the last portion of the dataset (walk-forward windows)
@@ -107,9 +94,9 @@ print(f"\nAligned returns: {n_preds} days")
 print(f"Return period: approximately "
       f"{data.index[-n_preds].date()} to {data.index[-1].date()}")
 
-# =============================================================================
+
 # STEP 3: SIMULATE TRADING STRATEGIES
-# =============================================================================
+
 
 def compute_sharpe(daily_returns, annualize=True):
     """
@@ -218,9 +205,9 @@ results.insert(0, {
     "vs_buyhold":     0.0,
 })
 
-# =============================================================================
+
 # STEP 4: SAVE RESULTS
-# =============================================================================
+
 
 results_dir = os.path.join(script_dir, "..", "results")
 os.makedirs(results_dir, exist_ok=True)
@@ -230,9 +217,9 @@ results_df.to_csv(os.path.join(results_dir, "sharpe_ratio_results.csv"),
                   index=False)
 print(f"\nSaved results to results/sharpe_ratio_results.csv")
 
-# =============================================================================
+
 # STEP 5: VISUALIZATIONS
-# =============================================================================
+
 
 figures_dir = os.path.join(script_dir, "..", "figures")
 os.makedirs(figures_dir, exist_ok=True)
@@ -313,9 +300,9 @@ plt.savefig(fig_path, dpi=150, bbox_inches="tight")
 plt.show()
 print(f"Saved figure to: {fig_path}")
 
-# =============================================================================
+
 # STEP 6: FINAL SUMMARY
-# =============================================================================
+
 
 print("\n" + "=" * 60)
 print("SHARPE RATIO SUMMARY")
